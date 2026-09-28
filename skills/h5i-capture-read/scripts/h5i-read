@@ -1,0 +1,695 @@
+#!/usr/bin/env python3
+"""Run a bounded project read inside the h5i-read Codex sandbox profile."""
+
+from __future__ import annotations
+
+import fnmatch
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+from typing import Iterable, Sequence
+
+
+EXIT_USAGE = 64
+SECRET_BASENAMES = {
+    ".env",
+    ".git-credentials",
+    ".htpasswd",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+    "auth.json",
+    "config.json",  # blocked only in credential directories below
+    "google-services.json",
+    "googleservice-info.plist",
+    "token",
+    "token.json",
+    "tokens.json",
+}
+SECRET_SUFFIXES = {
+    ".env",
+    ".jks",
+    ".key",
+    ".kdbx",
+    ".keystore",
+    ".mobileprovision",
+    ".p12",
+    ".p8",
+    ".pem",
+    ".pfx",
+    ".pub",
+}
+SECRET_DIR_COMPONENTS = {
+    ".aws",
+    ".azure",
+    ".gnupg",
+    ".kube",
+    ".ssh",
+    "keychains",
+}
+SECRET_PAIR_COMPONENTS = {
+    (".config", "gcloud"),
+    (".docker", "config.json"),
+    ("library", "keychains"),
+}
+SECRET_PREFIXES = (
+    "credentials",
+    "id_dsa",
+    "id_ecdsa",
+    "id_ed25519",
+    "id_rsa",
+    "secret",
+    "service-account",
+    "service_account",
+)
+SECRET_GLOBS = (
+    "**/.env",
+    "**/.env.*",
+    "**/*.env",
+    "**/*.pem",
+    "**/*.key",
+    "**/*.p8",
+    "**/*.p12",
+    "**/*.pfx",
+    "**/*.jks",
+    "**/*.keystore",
+    "**/*.pub",
+    "**/*.kdbx",
+    "**/*.mobileprovision",
+    "**/.git-credentials",
+    "**/.htpasswd",
+    "**/.netrc",
+    "**/.npmrc",
+    "**/.pypirc",
+    "**/auth.json",
+    "**/token",
+    "**/token.json",
+    "**/tokens.json",
+    "**/credentials*",
+    "**/secret*",
+    "**/service-account*.json",
+    "**/service_account*.json",
+    "**/id_rsa*",
+    "**/id_dsa*",
+    "**/id_ecdsa*",
+    "**/id_ed25519*",
+    "**/.ssh/**",
+    "**/.gnupg/**",
+    "**/.aws/**",
+    "**/.azure/**",
+    "**/.kube/**",
+    "**/.config/gcloud/**",
+    "**/.docker/config.json",
+    "**/Library/Keychains/**",
+    "**/library/keychains/**",
+    "**/google-services.json",
+    "**/GoogleService-Info.plist",
+)
+
+RG_EXEC_OPTIONS = {
+    "--hostname-bin",
+    "--pre",
+    "--pre-glob",
+    "--search-zip",
+    "--follow",
+    "-L",
+    "-z",
+}
+RG_PATH_OPTIONS = {"--file", "-f", "--ignore-file"}
+SED_RANGE = re.compile(r"^(?P<start>[1-9][0-9]*)(?:,(?P<end>[1-9][0-9]*|\$))?p$")
+
+NL_FLAG_OPTIONS = {"-p", "--no-renumber"}
+NL_VALUE_OPTIONS = {"-b", "-d", "-f", "-h", "-i", "-l", "-n", "-s", "-v", "-w"}
+NL_LONG_VALUE_OPTIONS = {
+    "--body-numbering",
+    "--footer-numbering",
+    "--header-numbering",
+    "--join-blank-lines",
+    "--line-increment",
+    "--number-format",
+    "--number-separator",
+    "--number-width",
+    "--section-delimiter",
+    "--starting-line-number",
+}
+
+# -R follows symlinks; -D and -d take an action that can read devices or
+# directories as files. None of them are needed for a bounded project read.
+GREP_FORBIDDEN_SHORT = set("RDd")
+GREP_FORBIDDEN_LONG = {"--dereference-recursive", "--devices", "--directories"}
+GREP_SHORT_FLAGS = set("abcEFGhHiIlLnoPqrsUvwxyz")
+GREP_SHORT_VALUE = set("efmABC")
+GREP_LONG_FLAGS = {
+    "--basic-regexp",
+    "--binary",
+    "--byte-offset",
+    "--color",
+    "--colour",
+    "--count",
+    "--extended-regexp",
+    "--files-with-matches",
+    "--files-without-match",
+    "--fixed-strings",
+    "--ignore-case",
+    "--invert-match",
+    "--line-number",
+    "--line-regexp",
+    "--no-filename",
+    "--no-messages",
+    "--null",
+    "--only-matching",
+    "--perl-regexp",
+    "--quiet",
+    "--recursive",
+    "--silent",
+    "--text",
+    "--with-filename",
+    "--word-regexp",
+}
+GREP_LONG_VALUE = {
+    "--after-context",
+    "--before-context",
+    "--binary-files",
+    "--color",
+    "--colour",
+    "--context",
+    "--exclude",
+    "--exclude-dir",
+    "--file",
+    "--include",
+    "--label",
+    "--max-count",
+    "--regexp",
+}
+GREP_PATTERN_OPTIONS = {"-e", "-f", "--regexp", "--file"}
+GREP_PATH_LONG_OPTIONS = {"--file"}
+GREP_EXCLUDE_GLOBS = (
+    ".env",
+    ".env.*",
+    "*.env",
+    "*.pem",
+    "*.key",
+    "*.p8",
+    "*.p12",
+    "*.pfx",
+    "*.jks",
+    "*.keystore",
+    "*.pub",
+    "*.kdbx",
+    "*.mobileprovision",
+    ".git-credentials",
+    ".htpasswd",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+    "auth.json",
+    "token",
+    "token.json",
+    "tokens.json",
+    "credentials*",
+    "secret*",
+    "service-account*.json",
+    "service_account*.json",
+    "id_rsa*",
+    "id_dsa*",
+    "id_ecdsa*",
+    "id_ed25519*",
+    "google-services.json",
+    "GoogleService-Info.plist",
+)
+GREP_EXCLUDE_DIRS = (
+    ".ssh",
+    ".gnupg",
+    ".aws",
+    ".azure",
+    ".kube",
+    "gcloud",
+    "Keychains",
+    "keychains",
+)
+
+# -print0 is excluded because the secret filter applied to find output is
+# line-oriented. Every predicate that executes, deletes, writes, or follows
+# symlinks is absent from both sets and therefore rejected.
+FIND_FLAG_PREDICATES = {
+    "-a",
+    "-and",
+    "-depth",
+    "-empty",
+    "-not",
+    "-o",
+    "-or",
+    "-print",
+    "-prune",
+}
+FIND_VALUE_PREDICATES = {
+    "-group",
+    "-iname",
+    "-ipath",
+    "-iregex",
+    "-maxdepth",
+    "-mindepth",
+    "-mmin",
+    "-mtime",
+    "-name",
+    "-newer",
+    "-path",
+    "-perm",
+    "-regex",
+    "-size",
+    "-type",
+    "-user",
+}
+FIND_PATH_PREDICATES = {"-newer"}
+
+# Programs whose stdout is a list of paths. Their output passes through the
+# same secret filter that the built-in listing uses.
+FILTERED_OUTPUT_PROGRAMS = {"find"}
+
+
+class ReadPolicyError(ValueError):
+    pass
+
+
+def _parts(path: Path) -> tuple[str, ...]:
+    return tuple(part.casefold() for part in path.parts if part not in {path.anchor, ""})
+
+
+def _looks_secret(path: Path) -> bool:
+    parts = _parts(path)
+    if not parts:
+        return False
+    name = parts[-1]
+    parent = parts[-2] if len(parts) > 1 else ""
+    if name == "config.json" and parent != ".docker":
+        pass
+    elif name in SECRET_BASENAMES:
+        return True
+    if name.startswith(".env.") or name.endswith(tuple(SECRET_SUFFIXES)):
+        return True
+    if name.startswith(SECRET_PREFIXES):
+        return True
+    if any(part in SECRET_DIR_COMPONENTS for part in parts):
+        return True
+    if any(pair[0] in parts and pair[1] in parts[parts.index(pair[0]) + 1 :] for pair in SECRET_PAIR_COMPONENTS):
+        return True
+    return False
+
+
+def normalize_and_check_path(raw: str, *, allow_directory: bool = False) -> Path:
+    candidate = Path(raw).expanduser()
+    absolute = candidate if candidate.is_absolute() else Path.cwd() / candidate
+    if _looks_secret(absolute):
+        raise ReadPolicyError(f"secret path is not readable: {raw}")
+    try:
+        resolved = absolute.resolve(strict=True)
+    except FileNotFoundError:
+        resolved = absolute.resolve(strict=False)
+    if _looks_secret(resolved):
+        raise ReadPolicyError(f"secret symlink target is not readable: {raw}")
+    if resolved.exists():
+        mode = resolved.stat().st_mode
+        if stat.S_ISDIR(mode):
+            if not allow_directory:
+                raise ReadPolicyError(f"directory is not valid for this operation: {raw}")
+        elif not stat.S_ISREG(mode):
+            raise ReadPolicyError(f"special file is not readable through this helper: {raw}")
+    return resolved
+
+
+def _split_options_and_paths(args: Sequence[str], *, value_options: set[str]) -> list[str]:
+    paths: list[str] = []
+    index = 0
+    after_separator = False
+    while index < len(args):
+        arg = args[index]
+        if after_separator:
+            paths.append(arg)
+        elif arg == "--":
+            after_separator = True
+        elif arg in value_options:
+            index += 1
+            if index >= len(args):
+                raise ReadPolicyError(f"missing value for {arg}")
+        elif arg.startswith("-"):
+            pass
+        else:
+            paths.append(arg)
+        index += 1
+    return paths
+
+
+def _validate_regular_command(program: str, args: Sequence[str]) -> list[str]:
+    if program == "cat":
+        for arg in args:
+            if arg.startswith("-") and arg != "--" and not re.fullmatch(r"-[benstuv]+", arg):
+                raise ReadPolicyError(f"unsupported cat option: {arg}")
+        paths = _split_options_and_paths(args, value_options=set())
+        executable = "/bin/cat"
+    elif program in {"head", "tail"}:
+        if any(
+            arg in {"-f", "-F"}
+            or arg.startswith("--follow")
+            or arg.startswith("--pid")
+            for arg in args
+        ):
+            raise ReadPolicyError("follow mode is not a bounded read")
+        paths = _split_options_and_paths(args, value_options={"-n", "-c", "--lines", "--bytes"})
+        executable = f"/usr/bin/{program}"
+    elif program == "wc":
+        paths = _split_options_and_paths(args, value_options=set())
+        executable = "/usr/bin/wc"
+    elif program == "stat":
+        paths = _split_options_and_paths(args, value_options={"-f"})
+        executable = "/usr/bin/stat"
+    else:
+        raise ReadPolicyError(f"unsupported read program: {program}")
+    if not paths:
+        raise ReadPolicyError(f"{program} requires at least one explicit file")
+    for raw in paths:
+        normalize_and_check_path(raw)
+    return [executable, *args]
+
+
+def _validate_sed(args: Sequence[str]) -> list[str]:
+    if len(args) < 3 or args[0] != "-n":
+        raise ReadPolicyError("sed accepts only: sed -n '<start>[,<end>]p' <file...>")
+    script = args[1]
+    match = SED_RANGE.fullmatch(script)
+    if match is None:
+        raise ReadPolicyError("sed script must contain only a numeric print range")
+    end = match.group("end")
+    if end not in {None, "$"} and int(end) < int(match.group("start")):
+        raise ReadPolicyError("sed range end must not precede its start")
+    for raw in args[2:]:
+        if raw.startswith("-"):
+            raise ReadPolicyError(f"sed option is not allowed after the range: {raw}")
+        normalize_and_check_path(raw)
+    return ["/usr/bin/sed", *args]
+
+
+def _validate_nl(args: Sequence[str]) -> list[str]:
+    paths: list[str] = []
+    index = 0
+    after_separator = False
+    while index < len(args):
+        arg = args[index]
+        if after_separator:
+            paths.append(arg)
+        elif arg == "--":
+            after_separator = True
+        elif arg.startswith("--"):
+            name, separator, _ = arg.partition("=")
+            if name in NL_FLAG_OPTIONS and not separator:
+                pass
+            elif name in NL_LONG_VALUE_OPTIONS:
+                if not separator:
+                    index += 1
+                    if index >= len(args):
+                        raise ReadPolicyError(f"missing value for {name}")
+            else:
+                raise ReadPolicyError(f"unsupported nl option: {arg}")
+        elif arg == "-":
+            raise ReadPolicyError("nl requires explicit files, not standard input")
+        elif arg.startswith("-"):
+            head = arg[:2]
+            if head in NL_FLAG_OPTIONS:
+                if len(arg) > 2:
+                    raise ReadPolicyError(f"unsupported nl option: {arg}")
+            elif head in NL_VALUE_OPTIONS:
+                if len(arg) == 2:
+                    index += 1
+                    if index >= len(args):
+                        raise ReadPolicyError(f"missing value for {head}")
+            else:
+                raise ReadPolicyError(f"unsupported nl option: {arg}")
+        else:
+            paths.append(arg)
+        index += 1
+    if not paths:
+        raise ReadPolicyError("nl requires at least one explicit file")
+    for raw in paths:
+        normalize_and_check_path(raw)
+    return ["/usr/bin/nl", *args]
+
+
+def _validate_grep(args: Sequence[str]) -> list[str]:
+    positionals: list[str] = []
+    saw_pattern_option = False
+    recursive = False
+    index = 0
+    after_separator = False
+    while index < len(args):
+        arg = args[index]
+        if after_separator:
+            positionals.append(arg)
+            index += 1
+            continue
+        if arg == "--":
+            after_separator = True
+            index += 1
+            continue
+        if arg == "-":
+            raise ReadPolicyError("grep requires explicit files, not standard input")
+        if arg.startswith("--"):
+            name, separator, value = arg.partition("=")
+            if name in GREP_FORBIDDEN_LONG:
+                raise ReadPolicyError(f"grep option can escape the bounded read: {name}")
+            if name == "--recursive":
+                recursive = True
+            if name in GREP_PATTERN_OPTIONS:
+                saw_pattern_option = True
+            if separator:
+                if name not in GREP_LONG_VALUE:
+                    raise ReadPolicyError(f"unsupported grep option: {arg}")
+                if name in GREP_PATH_LONG_OPTIONS:
+                    normalize_and_check_path(value)
+            elif name in GREP_LONG_FLAGS:
+                pass
+            elif name in GREP_LONG_VALUE:
+                index += 1
+                if index >= len(args):
+                    raise ReadPolicyError(f"missing value for {name}")
+                if name in GREP_PATH_LONG_OPTIONS:
+                    normalize_and_check_path(args[index])
+            else:
+                raise ReadPolicyError(f"unsupported grep option: {arg}")
+            index += 1
+            continue
+        if arg.startswith("-"):
+            cluster = arg[1:]
+            position = 0
+            while position < len(cluster):
+                letter = cluster[position]
+                if letter in GREP_FORBIDDEN_SHORT:
+                    raise ReadPolicyError(
+                        f"grep option can escape the bounded read: -{letter}"
+                    )
+                if letter in GREP_SHORT_VALUE:
+                    if letter in {"e", "f"}:
+                        saw_pattern_option = True
+                    inline = cluster[position + 1 :]
+                    if inline:
+                        if letter == "f":
+                            normalize_and_check_path(inline)
+                    else:
+                        index += 1
+                        if index >= len(args):
+                            raise ReadPolicyError(f"missing value for -{letter}")
+                        if letter == "f":
+                            normalize_and_check_path(args[index])
+                    break
+                if letter not in GREP_SHORT_FLAGS:
+                    raise ReadPolicyError(f"unsupported grep option: -{letter}")
+                if letter == "r":
+                    recursive = True
+                position += 1
+            index += 1
+            continue
+        positionals.append(arg)
+        index += 1
+
+    if not saw_pattern_option:
+        if not positionals:
+            raise ReadPolicyError("grep requires a pattern")
+        positionals = positionals[1:]
+    if not positionals:
+        raise ReadPolicyError("grep requires at least one explicit path")
+    for raw in positionals:
+        normalize_and_check_path(raw, allow_directory=True)
+
+    exclusions: list[str] = []
+    if recursive:
+        exclusions.extend(f"--exclude={pattern}" for pattern in GREP_EXCLUDE_GLOBS)
+        exclusions.extend(f"--exclude-dir={name}" for name in GREP_EXCLUDE_DIRS)
+    return ["/usr/bin/grep", *exclusions, *args]
+
+
+def _validate_find(args: Sequence[str]) -> list[str]:
+    roots: list[str] = []
+    index = 0
+    while index < len(args) and not args[index].startswith("-"):
+        roots.append(args[index])
+        index += 1
+    if not roots:
+        raise ReadPolicyError("find requires at least one explicit starting path")
+    while index < len(args):
+        predicate = args[index]
+        if predicate in FIND_FLAG_PREDICATES:
+            index += 1
+            continue
+        if predicate in FIND_VALUE_PREDICATES:
+            index += 1
+            if index >= len(args):
+                raise ReadPolicyError(f"missing value for {predicate}")
+            if predicate in FIND_PATH_PREDICATES:
+                normalize_and_check_path(args[index], allow_directory=True)
+            index += 1
+            continue
+        raise ReadPolicyError(f"unsupported find predicate: {predicate}")
+    for raw in roots:
+        normalize_and_check_path(raw, allow_directory=True)
+    return ["/usr/bin/find", *args]
+
+
+def _rg_option_name(arg: str) -> str:
+    return arg.split("=", 1)[0]
+
+
+def _validate_rg(args: Sequence[str]) -> list[str]:
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        option = _rg_option_name(arg)
+        if option in RG_EXEC_OPTIONS:
+            raise ReadPolicyError(f"ripgrep option can execute or traverse unsafe input: {option}")
+        if option in RG_PATH_OPTIONS:
+            if "=" in arg:
+                normalize_and_check_path(arg.split("=", 1)[1])
+            else:
+                index += 1
+                if index >= len(args):
+                    raise ReadPolicyError(f"missing value for {option}")
+                normalize_and_check_path(args[index])
+        elif not arg.startswith("-"):
+            candidate = Path(arg).expanduser()
+            absolute = candidate if candidate.is_absolute() else Path.cwd() / candidate
+            if absolute.exists() or absolute.is_symlink():
+                normalize_and_check_path(arg, allow_directory=True)
+        index += 1
+    executable = shutil.which("rg")
+    if executable is None:
+        raise ReadPolicyError("rg executable was not found")
+    exclusions: list[str] = []
+    for pattern in SECRET_GLOBS:
+        exclusions.extend(["--glob", f"!{pattern}"])
+    return [executable, "--no-config", *args, *exclusions]
+
+
+def _format_listing(path: Path, *, include_hidden: bool, recursive: bool) -> Iterable[str]:
+    if path.is_file():
+        yield str(path)
+        return
+    for root, dirs, files in os.walk(path):
+        root_path = Path(root)
+        kept_dirs: list[str] = []
+        for name in sorted(dirs):
+            child = root_path / name
+            if (not include_hidden and name.startswith(".")) or _looks_secret(child):
+                continue
+            kept_dirs.append(name)
+            yield f"{child}/"
+        dirs[:] = kept_dirs if recursive else []
+        for name in sorted(files):
+            child = root_path / name
+            if (not include_hidden and name.startswith(".")) or _looks_secret(child):
+                continue
+            try:
+                normalize_and_check_path(str(child))
+            except ReadPolicyError:
+                continue
+            yield str(child)
+
+
+def _run_listing(args: Sequence[str]) -> int:
+    include_hidden = False
+    recursive = False
+    paths: list[str] = []
+    for arg in args:
+        if arg in {"-a", "--all"}:
+            include_hidden = True
+        elif arg in {"-R", "--recursive"}:
+            recursive = True
+        elif arg.startswith("-"):
+            raise ReadPolicyError(f"unsupported ls option: {arg}")
+        else:
+            paths.append(arg)
+    if not paths:
+        paths = ["."]
+    for raw in paths:
+        path = normalize_and_check_path(raw, allow_directory=True)
+        for line in _format_listing(path, include_hidden=include_hidden, recursive=recursive):
+            print(line)
+    return 0
+
+
+def build_command(argv: Sequence[str]) -> list[str] | None:
+    if not argv:
+        raise ReadPolicyError("missing read program")
+    program, args = argv[0], list(argv[1:])
+    if program in {"bash", "sh", "zsh", "env", "xargs"}:
+        raise ReadPolicyError(f"shell or command dispatcher is not allowed: {program}")
+    if program == "sed":
+        return _validate_sed(args)
+    if program == "rg":
+        return _validate_rg(args)
+    if program == "grep":
+        return _validate_grep(args)
+    if program == "nl":
+        return _validate_nl(args)
+    if program == "find":
+        return _validate_find(args)
+    if program == "ls":
+        return None
+    return _validate_regular_command(program, args)
+
+
+def _run_with_secret_filter(command: Sequence[str], env: dict[str, str]) -> int:
+    """Run a path-listing command and drop secret paths from its output."""
+    completed = subprocess.run(
+        command, env=env, check=False, capture_output=True, text=True
+    )
+    for line in completed.stdout.splitlines():
+        if line and _looks_secret(Path(line)):
+            continue
+        print(line)
+    if completed.stderr:
+        sys.stderr.write(completed.stderr)
+    return completed.returncode
+
+
+def run(argv: Sequence[str]) -> int:
+    command = build_command(argv)
+    if command is None:
+        return _run_listing(argv[1:])
+    env = os.environ.copy()
+    env.pop("RIPGREP_CONFIG_PATH", None)
+    if argv[0] in FILTERED_OUTPUT_PROGRAMS:
+        return _run_with_secret_filter(command, env)
+    return subprocess.run(command, env=env, check=False).returncode
+
+
+def main() -> int:
+    try:
+        return run(sys.argv[1:])
+    except ReadPolicyError as exc:
+        print(f"h5i-read: denied: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

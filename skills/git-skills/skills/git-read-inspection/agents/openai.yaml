@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Read Inspection"
+  short_description: "外部helperを無効化してGit状態と履歴を安全に閲覧"
+  default_prompt: "Use $git-read-inspection to inspect Git state, diffs, and history without external helpers or writes."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spec-First Development"
+  short_description: "Choose a safe spec path and deliver verified milestones."
+  default_prompt: "Use $spec-first-development to choose the right specification path and deliver the change through verified milestones."

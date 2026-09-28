@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Operations"
+  short_description: "Scope and verify requested GitHub writes."
+  default_prompt: "Use $gh-operations to carry out this requested GitHub change and verify the result."

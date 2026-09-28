@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Operations"
+  short_description: "Scope and verify requested local Git writes and pushes."
+  default_prompt: "Use $git-operations to carry out this requested Git change safely and verify its result."

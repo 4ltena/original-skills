@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apple のデザイン原則"
+  short_description: "Apple の8原則を画面や操作の設計・レビューに適用する"
+  default_prompt: "apple-design-principles を使って、この画面の設計と操作をレビューする。"

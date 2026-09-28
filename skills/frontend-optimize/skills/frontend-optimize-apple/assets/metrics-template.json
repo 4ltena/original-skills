@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "synthetic": false,
+  "context": {
+    "environment_id": "REPLACE-device-os-runtime-display-power",
+    "scenario_id": "REPLACE-input-to-result",
+    "dataset_id": "REPLACE-fixture-hash",
+    "cache_state": "warm",
+    "instrumentation_id": "REPLACE-tool-version-and-settings",
+    "measurement_kind": "independent-run-summary"
+  },
+  "build": {
+    "revision": "REPLACE-git-revision",
+    "configuration": "release"
+  },
+  "metrics": {
+    "input_to_result_ms": {
+      "unit": "ms",
+      "direction": "lower",
+      "sample_unit": "run",
+      "samples": [],
+      "run_ids": []
+    },
+    "retained_memory_mib": {
+      "unit": "MiB",
+      "direction": "lower",
+      "sample_unit": "run",
+      "samples": [],
+      "run_ids": []
+    }
+  },
+  "notes": "TEMPLATE ONLY: empty sample arrays are intentionally invalid; insert genuine measurements."
+}

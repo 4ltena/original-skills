@@ -1,0 +1,16 @@
+**/.project-notes/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules
+**/.github/copilot-instructions.md
+.claude/
+.codex/
+.cursor/
+._*
+.DS_Store
+__pycache__/
+*.py[cod]
+.idea/
+.vscode/
+*.log

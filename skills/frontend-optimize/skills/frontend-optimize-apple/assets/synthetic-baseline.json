@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "context": {
+    "environment_id": "SYNTHETIC-device-os-runtime-display-power",
+    "scenario_id": "SYNTHETIC-input-to-result",
+    "dataset_id": "SYNTHETIC-fixture-hash",
+    "cache_state": "warm",
+    "instrumentation_id": "SYNTHETIC-tool-version-and-settings",
+    "measurement_kind": "independent-run-summary"
+  },
+  "build": {
+    "revision": "synthetic-before",
+    "configuration": "release"
+  },
+  "metrics": {
+    "input_to_result_ms": {
+      "unit": "ms",
+      "direction": "lower",
+      "sample_unit": "run",
+      "samples": [
+        150,
+        152,
+        149,
+        151,
+        148,
+        153,
+        150,
+        149,
+        151,
+        150
+      ],
+      "run_ids": [
+        "synthetic-b-0",
+        "synthetic-b-1",
+        "synthetic-b-2",
+        "synthetic-b-3",
+        "synthetic-b-4",
+        "synthetic-b-5",
+        "synthetic-b-6",
+        "synthetic-b-7",
+        "synthetic-b-8",
+        "synthetic-b-9"
+      ]
+    },
+    "retained_memory_mib": {
+      "unit": "MiB",
+      "direction": "lower",
+      "sample_unit": "run",
+      "samples": [
+        100,
+        101,
+        100,
+        99,
+        100,
+        101,
+        100,
+        99,
+        100,
+        100
+      ]
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "h5i Capture Read"
+  short_description: "秘匿ファイルを除外してh5iへ閲覧出力を安全に保存"
+  default_prompt: "Use $h5i-capture-read to capture non-secret project reads without broad shell approval."

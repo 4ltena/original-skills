@@ -1,0 +1,4 @@
+interface:
+  display_name: "リリース管理"
+  short_description: "バージョンと公開手順を整え、デスクトップ配布物の構成と検証を扱う。"
+  default_prompt: "$releasing で今回のリリースと必要な配布物を準備してください。"

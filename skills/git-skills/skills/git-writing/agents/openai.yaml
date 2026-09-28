@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Writing"
+  short_description: "Draft commit, PR, and review text from verified changes."
+  default_prompt: "Use $git-writing to draft a clear commit message or pull request description for this diff."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Relay"
+  short_description: "Continue approved long plans across Codex contexts."
+  default_prompt: "Use $task-relay to continue this approved numbered plan from its handoff and complete the remaining tasks."

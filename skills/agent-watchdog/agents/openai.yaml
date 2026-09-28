@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Watchdog"
+  short_description: "Recover failed or stalled Codex workers safely."
+  default_prompt: "Use $agent-watchdog to recover this failed or stalled delegated run with bounded retries."

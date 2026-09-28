@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "min_samples": 10,
+  "metrics": {
+    "input_to_result_ms": {
+      "statistic": "median",
+      "min_improvement_percent": 5,
+      "max_regression_percent": 0
+    },
+    "retained_memory_mib": {
+      "statistic": "median",
+      "max_regression_percent": 3
+    }
+  },
+  "notes": "EXAMPLE POLICY ONLY: replace before collecting real before/after measurements."
+}

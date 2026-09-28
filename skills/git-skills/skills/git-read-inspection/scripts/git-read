@@ -1,0 +1,297 @@
+#!/usr/bin/python3
+"""Run version-pinned Git inspections without external helpers or writes."""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+from dataclasses import dataclass
+from typing import Mapping, Sequence
+
+
+EXIT_USAGE = 64
+EXIT_TIMEOUT = 124
+GIT = "/usr/bin/git"
+EXPECTED_VERSION = "git version 2.52.0"
+
+
+class GitReadError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class Grammar:
+    min_positionals: int = 0
+    max_positionals: int | None = None
+    flags: frozenset[str] = frozenset()
+    values: frozenset[str] = frozenset()
+    optional_values: frozenset[str] = frozenset()
+
+
+HELP = frozenset({"-h", "--help"})
+FORMATTING_FLAGS = frozenset({
+    "--abbrev-commit", "--decorate", "--full-diff", "--full-history", "--graph", "--no-decorate",
+    "--no-renames", "--no-signature", "--oneline", "--patch", "-p", "--raw", "--stat",
+    "--summary", "--name-only", "--name-status", "--numstat", "--shortstat", "--compact-summary",
+})
+FORMATTING_VALUES = frozenset({
+    "--abbrev", "--date", "--decorate-refs", "--decorate-refs-exclude", "--format", "--pretty",
+    "--stat-width", "--stat-name-width", "--stat-count", "--src-prefix", "--dst-prefix",
+    "--line-prefix", "--output-indicator-new", "--output-indicator-old", "--output-indicator-context",
+})
+HISTORY_FLAGS = HELP | FORMATTING_FLAGS | frozenset({
+    "--all", "--branches", "--tags", "--remotes", "--first-parent", "--merges", "--no-merges",
+    "--reverse", "--topo-order", "--date-order", "--author-date-order", "--cherry", "--cherry-mark",
+    "--cherry-pick", "--left-right", "--boundary", "--walk-reflogs", "-g", "--simplify-merges",
+    "--show-pulls", "--follow", "--no-patch", "-s",
+})
+HISTORY_VALUES = FORMATTING_VALUES | frozenset({
+    "--after", "--before", "--since", "--until", "--author", "--committer", "--grep", "--max-count",
+    "-n", "--min-parents", "--max-parents", "--skip", "--since-as-filter", "--ancestry-path",
+})
+DIFF_FLAGS = HELP | FORMATTING_FLAGS | frozenset({
+    "--cached", "--staged", "--merge-base", "--binary", "--check", "--exit-code", "--quiet",
+    "--minimal", "--patience", "--histogram", "--anchored", "--indent-heuristic", "--no-indent-heuristic",
+    "--find-renames", "-M", "--find-copies", "-C", "--find-copies-harder", "--irreversible-delete",
+    "-D", "--color-moved", "--color-moved-ws", "--ignore-all-space", "-w", "--ignore-space-change",
+    "-b", "--ignore-space-at-eol", "--ignore-cr-at-eol", "--ignore-blank-lines", "--relative",
+    "--submodule", "--ita-invisible-in-index", "--ita-visible-in-index",
+})
+DIFF_VALUES = FORMATTING_VALUES | frozenset({
+    "--unified", "-U", "--inter-hunk-context", "--diff-algorithm", "--anchored", "--word-diff",
+    "--word-diff-regex", "--color-words", "--ignore-matching-lines", "-I", "--find-object",
+    "--diff-filter", "--relative", "--submodule",
+})
+
+
+GRAMMARS: dict[str, Grammar] = {
+    "diff": Grammar(0, None, DIFF_FLAGS, DIFF_VALUES, frozenset({"--color"})),
+    "log": Grammar(0, None, HISTORY_FLAGS, HISTORY_VALUES, frozenset({"--color", "--decorate"})),
+    "show": Grammar(0, None, HISTORY_FLAGS | frozenset({"--cc", "--combined-all-paths"}), HISTORY_VALUES, frozenset({"--color", "--decorate"})),
+    "whatchanged": Grammar(0, None, HISTORY_FLAGS, HISTORY_VALUES, frozenset({"--color", "--decorate"})),
+    "blame": Grammar(1, 2, HELP | frozenset({"--incremental", "--line-porcelain", "--porcelain", "-p", "--root", "--show-email", "-e", "--show-name", "-f", "--show-number", "-n", "--reverse", "--first-parent"}), frozenset({"-L", "--ignore-rev"})),
+    "grep": Grammar(1, None, HELP | frozenset({"--cached", "--untracked", "--exclude-standard", "--recurse-submodules", "--invert-match", "-v", "--ignore-case", "-i", "--word-regexp", "-w", "--text", "-a", "--full-name", "--line-number", "-n", "--column", "--files-with-matches", "-l", "--files-without-match", "-L", "--count", "-c", "--break", "--heading", "--all-match", "--and", "--or", "--not", "(", ")"}), frozenset({"--max-depth", "--threads", "-e", "--regexp"})),
+    "shortlog": Grammar(0, None, HELP | frozenset({"--numbered", "-n", "--summary", "-s", "--email", "-e", "--committer", "-c", "--group"}), frozenset({"--format", "--group"})),
+    "status": Grammar(0, 0, HELP | frozenset({"--short", "-s", "--branch", "-b", "--show-stash", "--long", "--verbose", "-v", "--ahead-behind", "--no-ahead-behind", "--renames", "--no-renames"}), frozenset({"--porcelain", "--ignore-submodules", "--untracked-files", "-u", "--column"}), frozenset({"--porcelain"})),
+    "rev-parse": Grammar(0, None, HELP | frozenset({"--verify", "--quiet", "-q", "--short", "--symbolic", "--symbolic-full-name", "--abbrev-ref", "--all", "--branches", "--tags", "--remotes", "--glob", "--exclude", "--disambiguate", "--local-env-vars", "--is-inside-git-dir", "--is-inside-work-tree", "--is-bare-repository", "--is-shallow-repository", "--show-toplevel", "--show-superproject-working-tree", "--show-prefix", "--show-cdup", "--git-dir", "--absolute-git-dir", "--git-common-dir", "--show-object-format", "--show-ref-format", "--sq", "--revs-only", "--no-revs", "--flags", "--no-flags", "--default"}), frozenset({"--path-format", "--prefix", "--since", "--until"})),
+    "ls-files": Grammar(0, None, HELP | frozenset({"--cached", "-c", "--deleted", "-d", "--modified", "-m", "--others", "-o", "--ignored", "-i", "--stage", "-s", "--unmerged", "-u", "--killed", "-k", "--directory", "--no-empty-directory", "--resolve-undo", "--eol", "--deduplicate", "--recurse-submodules", "--error-unmatch"}), frozenset({"--exclude", "-x", "--exclude-per-directory", "--format", "--abbrev", "--with-tree"})),
+    "ls-tree": Grammar(1, None, HELP | frozenset({"-d", "-r", "-t", "-l", "--long", "--name-only", "--name-status", "--object-only", "--full-name", "--full-tree", "--sparse"}), frozenset({"--format", "--abbrev"})),
+    "for-each-ref": Grammar(0, None, HELP | frozenset({"--ignore-case", "--omit-empty", "--include-root-refs"}), frozenset({"--format", "--sort", "--count", "--points-at", "--merged", "--no-merged", "--contains", "--no-contains"})),
+    "show-ref": Grammar(0, None, HELP | frozenset({"--head", "--heads", "--tags", "--dereference", "-d", "--hash", "--verify", "--exists", "--abbrev", "--quiet", "-q"})),
+    "merge-base": Grammar(2, None, HELP | frozenset({"--all", "-a", "--octopus", "--independent", "--is-ancestor", "--fork-point"})),
+    "name-rev": Grammar(1, None, HELP | frozenset({"--tags", "--all", "--name-only", "--no-undefined", "--always"}), frozenset({"--refs", "--exclude"})),
+    "rev-list": Grammar(1, None, HISTORY_FLAGS | frozenset({"--objects", "--objects-edge", "--objects-edge-aggressive", "--disk-usage", "--header", "--timestamp", "--parents", "--children", "--count", "--bisect", "--bisect-vars", "--bisect-all"}), HISTORY_VALUES | frozenset({"--object-names", "--filter", "--filter-print-omitted", "--missing", "--exclude-hidden"})),
+    "describe": Grammar(0, 1, HELP | frozenset({"--all", "--tags", "--contains", "--debug", "--long", "--always", "--first-parent", "--exact-match", "--dirty", "--broken"}), frozenset({"--match", "--exclude", "--candidates", "--abbrev"}), frozenset({"--dirty", "--broken"})),
+    "cherry": Grammar(1, 3, HELP | frozenset({"-v"})),
+    "count-objects": Grammar(0, 0, HELP | frozenset({"-v", "--verbose", "-H", "--human-readable"})),
+    "check-attr": Grammar(2, None, HELP | frozenset({"-a", "--all", "--cached"}), frozenset({"--source"})),
+    "check-ignore": Grammar(1, None, HELP | frozenset({"-q", "--quiet", "-v", "--verbose", "--no-index", "--non-matching"})),
+    "check-mailmap": Grammar(1, None, HELP),
+    "check-ref-format": Grammar(1, 1, HELP | frozenset({"--branch", "--allow-onelevel", "--no-allow-onelevel", "--refspec-pattern", "--normalize"})),
+    "version": Grammar(0, 0, HELP | frozenset({"--build-options"})),
+}
+
+
+FORBIDDEN_OPTIONS = frozenset({
+    "-c", "--config-env", "--git-dir", "--work-tree", "--namespace", "--output", "--ext-diff",
+    "--textconv", "--open-files-in-pager", "--no-index", "--stdin", "--batch", "--batch-check",
+    "--batch-command", "--filters", "--filter", "--use-mailmap", "--exec-path", "--paginate", "-P",
+    "--contents", "--file", "-f", "--exclude-from", "-X", "--show-signature", "--shell", "--perl",
+    "--python", "--tcl", "--exclude-existing",
+})
+SAFE_CONFIG_KEYS = frozenset({
+    "core.bare", "core.filemode", "core.ignorecase", "core.precomposeunicode",
+    "core.repositoryformatversion", "core.symlinks", "extensions.objectformat", "init.defaultbranch",
+})
+FIXED_CONFIG = [
+    "-c", "core.pager=cat", "-c", "color.ui=false", "-c", "diff.external=",
+    "-c", "interactive.diffFilter=", "-c", "core.fsmonitor=false",
+]
+TEXT_READS = frozenset({"diff", "log", "show", "whatchanged", "grep"})
+
+
+def _option_name(token: str) -> str:
+    return token.split("=", 1)[0]
+
+
+def _parse(args: Sequence[str], grammar: Grammar) -> list[str]:
+    positionals: list[str] = []
+    index = 0
+    after_separator = False
+    while index < len(args):
+        token = args[index]
+        if token == "--" and not after_separator:
+            after_separator = True
+            index += 1
+            continue
+        if not after_separator and token.startswith("-"):
+            name = _option_name(token)
+            if name in FORBIDDEN_OPTIONS:
+                raise GitReadError(f"option can redirect reads, execute a helper, or consume commands: {name}")
+            if name in grammar.flags:
+                if "=" in token:
+                    raise GitReadError(f"flag does not take a value: {name}")
+                index += 1
+                continue
+            if name in grammar.optional_values:
+                index += 1
+                continue
+            if name in grammar.values:
+                if "=" not in token:
+                    index += 1
+                    if index >= len(args) or args[index] == "--":
+                        raise GitReadError(f"option requires a value: {name}")
+                index += 1
+                continue
+            raise GitReadError(f"unknown option: {name}")
+        positionals.append(token)
+        index += 1
+    if len(positionals) < grammar.min_positionals:
+        raise GitReadError("missing required positional argument")
+    if grammar.max_positionals is not None and len(positionals) > grammar.max_positionals:
+        raise GitReadError("too many positional arguments")
+    return positionals
+
+
+def validate(argv: Sequence[str]) -> tuple[str, list[str]]:
+    if not argv:
+        raise GitReadError("missing Git read subcommand")
+    if any("\0" in token for token in argv):
+        raise GitReadError("NUL is not permitted in argv")
+    if argv[0].startswith("-"):
+        raise GitReadError("caller-supplied Git global options are not permitted")
+    subcommand = argv[0]
+    args = list(argv[1:])
+    if subcommand == "config":
+        if len(args) == 2 and args[0] == "--get" and args[1] in {"user.name", "user.email"}:
+            return subcommand, ["--includes", "--get", args[1]]
+        if len(args) != 2 or args[0] != "--get" or args[1].lower() not in SAFE_CONFIG_KEYS:
+            raise GitReadError("config permits only --get for approved non-secret metadata keys")
+        return subcommand, ["--local", "--no-includes", "--get", args[1]]
+    if subcommand == "cat-file":
+        if len(args) != 2 or args[0] not in {"-p", "-t", "-s", "-e"} or args[1].startswith("-"):
+            raise GitReadError("cat-file requires -p, -t, -s, or -e and exactly one object")
+        return subcommand, args
+    bounded: dict[str, tuple[tuple[str, ...], int, int]] = {
+        "branch": (("--show-current",), 0, 0),
+        "remote": (("get-url",), 1, 1),
+        "worktree": (("list",), 0, 0),
+        "submodule": (("status", "summary"), 0, None),
+        "notes": (("show", "list"), 0, 1),
+        "reflog": (("show", "exists"), 0, 1),
+        "tag": (("--list",), 0, 1),
+    }
+    if subcommand in bounded:
+        forms, minimum, maximum = bounded[subcommand]
+        if not args:
+            raise GitReadError(f"{subcommand} requires a bounded read form")
+        if subcommand == "remote":
+            if args[0] != "get-url":
+                raise GitReadError("remote permits only get-url")
+            rest = args[1:]
+            flags = [item for item in rest if item in {"--all", "--push"}]
+            positionals = [item for item in rest if item not in {"--all", "--push"}]
+            if len(flags) != len(rest) - len(positionals) or len(positionals) != 1 or positionals[0].startswith("-"):
+                raise GitReadError("remote get-url requires one remote and optional --all/--push")
+            return subcommand, args
+        if subcommand == "tag":
+            if args[0] != "--list" or len(args) > 2:
+                raise GitReadError("tag permits only --list and an optional pattern")
+            return subcommand, args
+        if args[0] not in forms:
+            raise GitReadError(f"{subcommand} form is not read-only")
+        rest = args[1:]
+        if subcommand == "worktree" and rest not in ([], ["--porcelain"]):
+            raise GitReadError("worktree list permits only --porcelain")
+        if subcommand == "branch" and rest:
+            raise GitReadError("branch --show-current takes no arguments")
+        if subcommand == "submodule" and any(item.startswith("-") for item in rest):
+            raise GitReadError("submodule read forms reject options")
+        if subcommand in {"notes", "reflog"} and (len(rest) > 1 or any(item.startswith("-") for item in rest)):
+            raise GitReadError(f"{subcommand} read form accepts at most one target")
+        if len(rest) < minimum or (maximum is not None and len(rest) > maximum):
+            raise GitReadError(f"invalid {subcommand} read arguments")
+        return subcommand, args
+    grammar = GRAMMARS.get(subcommand)
+    if grammar is None:
+        raise GitReadError("Git subcommand is not read-only through this helper")
+    _parse(args, grammar)
+    for index, token in enumerate(args):
+        name = _option_name(token)
+        if name not in {"--format", "--pretty"}:
+            continue
+        value = token.split("=", 1)[1] if "=" in token else (args[index + 1] if index + 1 < len(args) else "")
+        if "%G" in value or "signature" in value.lower():
+            raise GitReadError("format may invoke signature verification")
+    return subcommand, args
+
+
+def build_command(argv: Sequence[str]) -> tuple[list[str], bool]:
+    subcommand, args = validate(argv)
+    command = [GIT, "--no-pager", *FIXED_CONFIG, subcommand]
+    if subcommand in TEXT_READS - {"grep"}:
+        command.extend(["--no-ext-diff", "--no-textconv"])
+    elif subcommand == "grep":
+        command.append("--no-textconv")
+    command.extend(args)
+    return command, subcommand == "remote"
+
+
+def sanitized_env(source: Mapping[str, str] | None = None) -> dict[str, str]:
+    inherited = os.environ if source is None else source
+    env = {key: inherited[key] for key in ("HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "LC_CTYPE", "TMPDIR", "TERM") if key in inherited}
+    env.update({
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "GIT_ATTR_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_OPTIONAL_LOCKS": "0", "GIT_PAGER": "cat", "PAGER": "cat",
+    })
+    return env
+
+
+def _check_version(env: Mapping[str, str]) -> None:
+    try:
+        result = subprocess.run([GIT, "version"], capture_output=True, text=True, check=False, timeout=10, env=dict(env))
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise GitReadError("unable to verify Git version") from error
+    if result.returncode != 0 or not result.stdout.strip().startswith(EXPECTED_VERSION):
+        raise GitReadError("unsupported Git version")
+
+
+def _redact_http_userinfo(value: str) -> str:
+    return re.sub(r"(?i)([a-z][a-z0-9+.-]*://)[^/@\s]+@", r"\1[redacted]@", value)
+
+
+def run(argv: Sequence[str]) -> int:
+    env = sanitized_env()
+    _check_version(env)
+    command, capture = build_command(argv)
+    if list(argv) in (["config", "--get", "user.name"], ["config", "--get", "user.email"]):
+        env.pop("GIT_CONFIG_GLOBAL", None)
+        env.pop("GIT_CONFIG_NOSYSTEM", None)
+    try:
+        if capture:
+            result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=120, env=env)
+            if result.stdout:
+                sys.stdout.write(_redact_http_userinfo(result.stdout))
+            if result.stderr:
+                sys.stderr.write(_redact_http_userinfo(result.stderr))
+            return result.returncode
+        return subprocess.run(command, check=False, timeout=120, env=env).returncode
+    except subprocess.TimeoutExpired:
+        return EXIT_TIMEOUT
+    except OSError as error:
+        raise GitReadError("unable to execute Git") from error
+
+
+def main() -> int:
+    try:
+        return run(sys.argv[1:])
+    except GitReadError as error:
+        print(f"git-read: denied: {error}", file=sys.stderr)
+        return EXIT_USAGE
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

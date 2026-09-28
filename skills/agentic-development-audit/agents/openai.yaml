@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agentic Development Audit"
+  short_description: "Audit agent runs or compare measured development workflows."
+  default_prompt: "Use $agentic-development-audit to inspect this AI development workflow from run evidence; compare alternatives only when measurements exist."

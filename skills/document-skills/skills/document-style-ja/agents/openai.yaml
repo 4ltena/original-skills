@@ -1,0 +1,4 @@
+interface:
+  display_name: "Japanese Document Style"
+  short_description: "Polish Japanese documents after writing or translation."
+  default_prompt: "Use $document-style-ja to polish this Japanese document after writing or translation without changing its claims."

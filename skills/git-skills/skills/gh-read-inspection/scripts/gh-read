@@ -1,0 +1,199 @@
+#!/usr/bin/python3
+"""Run version-pinned, bounded GitHub CLI reads."""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+from dataclasses import dataclass
+from typing import Mapping, Sequence
+
+
+EXIT_USAGE = 64
+EXIT_TIMEOUT = 124
+GH = "/usr/bin/gh"
+EXPECTED_VERSION = "gh version 2.101.0"
+
+
+class GhReadError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class Grammar:
+    min_positionals: int
+    max_positionals: int
+    flags: frozenset[str]
+    values: frozenset[str]
+    optional_values: frozenset[str] = frozenset()
+
+
+HELP = frozenset({"-h", "--help"})
+FORMAT_VALUES = frozenset({"--json", "--jq", "-q", "--template", "-t"})
+TARGET_VALUES = frozenset({"--repo", "-R"})
+COMMON_VALUES = FORMAT_VALUES | TARGET_VALUES
+
+
+GRAMMARS: dict[tuple[str, str], Grammar] = {
+    ("repo", "view"): Grammar(0, 1, HELP | frozenset({"--readme"}), COMMON_VALUES | frozenset({"--branch"})),
+    ("repo", "list"): Grammar(0, 1, HELP | frozenset({"--archived", "--fork", "--source", "--no-archived"}), COMMON_VALUES | frozenset({"--language", "--limit", "-L", "--topic", "--visibility"})),
+    ("pr", "view"): Grammar(0, 1, HELP | frozenset({"--comments"}), COMMON_VALUES),
+    ("pr", "list"): Grammar(0, 0, HELP | frozenset({"--draft"}), COMMON_VALUES | frozenset({"--app", "--assignee", "--author", "--base", "--head", "--label", "--limit", "-L", "--milestone", "--search", "-S", "--state"})),
+    ("pr", "status"): Grammar(0, 0, HELP, COMMON_VALUES),
+    ("pr", "checks"): Grammar(0, 1, HELP | frozenset({"--fail-fast", "--required"}), COMMON_VALUES | frozenset({"--interval"})),
+    ("pr", "diff"): Grammar(0, 1, HELP | frozenset({"--name-only", "--patch"}), TARGET_VALUES, frozenset({"--color"})),
+    ("issue", "view"): Grammar(0, 1, HELP | frozenset({"--comments"}), COMMON_VALUES),
+    ("issue", "list"): Grammar(0, 0, HELP, COMMON_VALUES | frozenset({"--app", "--assignee", "--author", "--label", "--limit", "-L", "--mention", "--milestone", "--search", "-S", "--state"})),
+    ("issue", "status"): Grammar(0, 0, HELP, COMMON_VALUES),
+    ("run", "view"): Grammar(0, 1, HELP | frozenset({"--exit-status", "--log", "--log-failed", "--verbose"}), COMMON_VALUES | frozenset({"--attempt", "--job"})),
+    ("run", "list"): Grammar(0, 0, HELP, COMMON_VALUES | frozenset({"--branch", "-b", "--commit", "-c", "--created", "--event", "-e", "--limit", "-L", "--status", "-s", "--user", "-u", "--workflow", "-w"})),
+    ("workflow", "view"): Grammar(0, 1, HELP | frozenset({"--yaml", "-y"}), COMMON_VALUES | frozenset({"--ref"})),
+    ("workflow", "list"): Grammar(0, 0, HELP | frozenset({"--all", "-a"}), COMMON_VALUES | frozenset({"--limit", "-L"})),
+    ("release", "view"): Grammar(0, 1, HELP, COMMON_VALUES),
+    ("release", "list"): Grammar(0, 0, HELP | frozenset({"--exclude-drafts", "--exclude-pre-releases"}), COMMON_VALUES | frozenset({"--limit", "-L", "--order"})),
+}
+
+SEARCH_VALUES = COMMON_VALUES | frozenset({
+    "--archived", "--assignee", "--author", "--author-date", "--base", "--checks", "--closed",
+    "--commenter", "--comments", "--committer", "--committer-date", "--created", "--extension",
+    "--filename", "--followers", "--forks", "--good-first-issues", "--head", "--help-wanted-issues",
+    "--interactions", "--involves", "--is", "--language", "--label", "--license", "--limit", "-L",
+    "--match", "--mentions", "--merged", "--merged-at", "--milestone", "--no-assignee", "--no-label",
+    "--no-milestone", "--no-project", "--order", "--owner", "--project", "--pushed", "--reactions",
+    "--review", "--review-requested", "--reviewed-by", "--size", "--sort", "--stars", "--state",
+    "--team-mentions", "--topic", "--updated", "--visibility",
+})
+for _name in ("code", "commits", "issues", "prs", "repos"):
+    GRAMMARS[("search", _name)] = Grammar(1, 1, HELP, SEARCH_VALUES)
+
+
+FORBIDDEN_OPTIONS = frozenset({
+    "--web", "-w", "--watch", "--browser", "--editor", "--pager", "--output", "-O", "--dir",
+    "--download", "--archive", "--upload", "--delete", "--add", "--remove", "--edit", "--create",
+})
+FORBIDDEN_COMMANDS = frozenset({
+    "alias", "api", "auth", "cache", "codespace", "config", "extension", "gist", "gpg-key",
+    "label", "org", "project", "secret", "ssh-key", "variable",
+})
+
+
+def _option_name(token: str) -> str:
+    return token.split("=", 1)[0]
+
+
+def _validate_repo_selector(value: str) -> None:
+    parts = value.split("/")
+    if len(parts) == 3 and parts[0].lower() == "github.com":
+        parts = parts[1:]
+    if len(parts) != 2 or not all(re.fullmatch(r"[A-Za-z0-9_.-]+", part) for part in parts):
+        raise GhReadError("repository selector must be OWNER/REPO on github.com")
+
+
+def validate(argv: Sequence[str]) -> list[str]:
+    if len(argv) < 2:
+        raise GhReadError("missing approved gh command path")
+    if any("\0" in token for token in argv):
+        raise GhReadError("NUL is not permitted in argv")
+    if argv[0].startswith("-"):
+        raise GhReadError("caller-supplied gh global options are not permitted")
+    if argv[0] in FORBIDDEN_COMMANDS:
+        raise GhReadError(f"gh command is not a bounded read: {argv[0]}")
+    path = (argv[0], argv[1])
+    grammar = GRAMMARS.get(path)
+    if grammar is None:
+        raise GhReadError("gh command path is not an approved read")
+    positionals: list[str] = []
+    index = 2
+    after_separator = False
+    while index < len(argv):
+        token = argv[index]
+        if token == "--" and not after_separator:
+            after_separator = True
+            index += 1
+            continue
+        if not after_separator and token.startswith("-"):
+            name = _option_name(token)
+            if name in FORBIDDEN_OPTIONS:
+                raise GhReadError(f"option can open an external UI, wait, or write data: {name}")
+            if name in grammar.flags:
+                if "=" in token:
+                    raise GhReadError(f"flag does not take a value: {name}")
+                index += 1
+                continue
+            if name in grammar.optional_values:
+                index += 1
+                continue
+            if name in grammar.values:
+                value = token.split("=", 1)[1] if "=" in token else None
+                if "=" not in token:
+                    index += 1
+                    if index >= len(argv) or argv[index] == "--":
+                        raise GhReadError(f"option requires a value: {name}")
+                    value = argv[index]
+                if name in TARGET_VALUES:
+                    assert value is not None
+                    _validate_repo_selector(value)
+                index += 1
+                continue
+            raise GhReadError(f"unknown option: {name}")
+        if after_separator and _option_name(token) in FORBIDDEN_OPTIONS:
+            raise GhReadError("forbidden option is not permitted after --")
+        positionals.append(token)
+        index += 1
+    if not grammar.min_positionals <= len(positionals) <= grammar.max_positionals:
+        raise GhReadError("invalid number of positional arguments")
+    if path == ("repo", "view") and positionals and "://" in positionals[0]:
+        raise GhReadError("repository URL targets are not permitted")
+    return [GH, *argv]
+
+
+def sanitized_env(source: Mapping[str, str] | None = None) -> dict[str, str]:
+    inherited = os.environ if source is None else source
+    allowed = (
+        "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "LC_CTYPE", "TMPDIR", "TERM",
+        "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "GH_REPO",
+        "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
+        "SSL_CERT_FILE", "SSL_CERT_DIR",
+    )
+    env = {key: inherited[key] for key in allowed if key in inherited}
+    env.update({
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "GH_PAGER": "cat", "PAGER": "cat", "GH_PROMPT_DISABLED": "1", "NO_COLOR": "1",
+    })
+    return env
+
+
+def _check_version(env: Mapping[str, str]) -> None:
+    try:
+        result = subprocess.run([GH, "version"], capture_output=True, text=True, check=False, timeout=10, env=dict(env))
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise GhReadError("unable to verify gh version") from error
+    output = (result.stdout or result.stderr).strip()
+    if result.returncode != 0 or not output.startswith(EXPECTED_VERSION):
+        raise GhReadError("unsupported gh version")
+
+
+def run(argv: Sequence[str]) -> int:
+    env = sanitized_env()
+    _check_version(env)
+    command = validate(argv)
+    try:
+        return subprocess.run(command, check=False, timeout=120, env=env).returncode
+    except subprocess.TimeoutExpired:
+        return EXIT_TIMEOUT
+    except OSError as error:
+        raise GhReadError("unable to execute gh") from error
+
+
+def main() -> int:
+    try:
+        return run(sys.argv[1:])
+    except GhReadError as error:
+        print(f"gh-read: denied: {error}", file=sys.stderr)
+        return EXIT_USAGE
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

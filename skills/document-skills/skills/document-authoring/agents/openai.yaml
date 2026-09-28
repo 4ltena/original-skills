@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Review"
+  short_description: "Check drafts for accuracy and reader usability."
+  default_prompt: "Use $document-authoring to check this document against its request and sources."
