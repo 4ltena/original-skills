@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+"""Inventory every asset the learning loop has produced, with staleness.
+
+A store that only grows becomes untrustworthy. This is the input to the
+review that decides what stays.
+"""
+import argparse
+import difflib
+import os
+import sys
+import time
+from pathlib import Path
+
+# Where skills are discovered when GROWTH_LOOP_SKILL_ROOTS is unset. These two
+# cover exactly what the learning loop itself writes: user skills and a
+# project-local skills dir. Widening this to ~/.claude/plugins (the original
+# spec's third root) pulls in every installed plugin's SKILL.md files — on a
+# populated machine that is a 20x-plus flood of vendor files the loop did not
+# produce and cannot delete, each one double-counted because cache/ and
+# marketplaces/ checkouts are separate inodes the resolve()-based dedup below
+# does not collapse. That flood breaks journey's forced three-way verdict,
+# feeds bogus pairs to the duplicate hunt, and turns forget's directory
+# delete into a way to destroy an installed plugin. Anyone who wants the
+# wider sweep anyway can still get it via GROWTH_LOOP_SKILL_ROOTS.
+SKILL_ROOTS = ("~/.claude/skills", "./.claude/skills")
+# Claude Code syncs claude.ai skills into <root>/synced/, and Codex keeps its
+# built-in skills in <root>/.system/. The loop wrote neither, and forget would
+# delete them by name, so the sweep skips them.
+SKIP_DIRS = frozenset({"synced", ".system"})
+# Codex's equivalents of the two defaults above. Which pair applies is decided
+# by runtime(); learn writes to the first root, so it lands where Codex loads.
+CODEX_SKILL_ROOTS = ("$CODEX_HOME/skills", "./.agents/skills")
+CODEX_MEMORY_FILES = ("$CODEX_HOME/AGENTS.md", "./AGENTS.md")
+# Memory files always checked in addition to <home>/profile.md. Adding one
+# widens the MEMORY section for every run, test fixtures included.
+MEMORY_FILES = ("~/.claude/CLAUDE.md", "./CLAUDE.md")
+# Age at which a skill is flagged STALE in the listing. This drives the flag
+# and nothing else — the verdict journey forces comes from the --stale value
+# that skill passes, so raising this alone changes what the table looks like
+# and nothing about what gets decided. Raising it hides skills that would
+# otherwise catch a reviewer's eye; lowering it flags so many that the flag
+# stops being read.
+STALE_DAYS = 90
+# Fallback for GROWTH_LOOP_HOME. Changing this moves where a real run looks
+# for profile.md and ledger.jsonl when the env var is unset.
+DEFAULT_HOME = "~/.claude/growth-loop"
+# Truncation width for skill descriptions in the SKILLS table. Raising it
+# widens every row and risks wrapping in a narrow terminal.
+DESC_CHARS = 90
+# Column width for skill names. A name longer than this is clipped rather
+# than allowed to push the age and description columns out of line, which
+# stops the listing being readable as a table at all.
+NAME_CHARS = 28
+# Column width for memory file paths. Same reason as NAME_CHARS: a deep
+# GROWTH_LOOP_HOME would otherwise push the age and size columns out of line.
+MEMORY_PATH_CHARS = 52
+# Default similarity floor for --duplicates, on a 0-1 SequenceMatcher ratio
+# over description text. This is a first-pass shortlist, not a verdict — the
+# manual pairwise reading in journey/SKILL.md's Duplicates section still
+# decides whether a pair actually overlaps. Set low enough to surface
+# reworded restatements of the same task, high enough that unrelated
+# one-line descriptions don't share enough incidental words to clear it.
+DUPLICATE_THRESHOLD = 0.5
+
+
+def clip(text, limit):
+    """Truncate with a visible marker, so a cut is never read as an ending."""
+    return text if len(text) <= limit else text[:limit - 3] + "..."
+
+
+def clip_path(text, limit):
+    """Clip a path from the left, keeping the end.
+
+    A path's tail carries the filename and the directory that names it,
+    which is what identifies the row; the prefix is usually a long temp or
+    home directory shared by every row. Clipping from the right would drop
+    exactly the part the reader is looking for.
+    """
+    return text if len(text) <= limit else "..." + text[-(limit - 3):]
+
+
+def home():
+    # An env var that is set but empty is not an override. os.environ.get
+    # returns "" rather than the default for it, and Path("") is Path("."),
+    # so `export GROWTH_LOOP_HOME=` would scatter profile.md and the ledger
+    # into whatever repository happens to be the working directory — the
+    # exact thing keeping this state outside any repo is meant to prevent.
+    return Path(os.environ.get("GROWTH_LOOP_HOME") or DEFAULT_HOME).expanduser()
+
+
+def runtime():
+    """The agent runtime this process runs under: "codex" or "claude".
+
+    A script that Codex installed lives under $CODEX_HOME/plugins, and only
+    Codex loads it, so that settles it. Environment variables leak across a
+    nesting (Codex started from a Claude Code shell inherits CLAUDECODE), so
+    they are only the fallback for a checkout run by hand. Claude is checked
+    first there and is the default, so a plain terminal behaves as it always did.
+    """
+    try:
+        Path(__file__).resolve().relative_to(
+            (expand("$CODEX_HOME") / "plugins").resolve())
+        return "codex"
+    except ValueError:
+        pass
+    if os.environ.get("CLAUDECODE"):
+        return "claude"
+    return "codex" if os.environ.get("CODEX_THREAD_ID") else "claude"
+
+
+def expand(template):
+    """expanduser, with $CODEX_HOME resolved (unset or empty means ~/.codex)."""
+    codex_home = os.environ.get("CODEX_HOME") or "~/.codex"
+    return Path(template.replace("$CODEX_HOME", codex_home)).expanduser()
+
+
+def default_skill_roots():
+    return CODEX_SKILL_ROOTS if runtime() == "codex" else SKILL_ROOTS
+
+
+def memory_files():
+    return CODEX_MEMORY_FILES if runtime() == "codex" else MEMORY_FILES
+
+
+def skill_roots():
+    override = os.environ.get("GROWTH_LOOP_SKILL_ROOTS")
+    sources = override.split(os.pathsep) if override else default_skill_roots()
+    roots = [expand(s) for s in sources if s]
+    # An override of nothing but separators filters down to no roots at all.
+    # Returning that would let --paths name a write target this sweep never
+    # reads, which is the exact desync the resolution exists to prevent.
+    return roots or [expand(default_skill_roots()[0])]
+
+
+def age_days(path):
+    try:
+        return (time.time() - path.stat().st_mtime) / 86400.0
+    except OSError:
+        return 0.0
+
+
+def description_of(path):
+    """Pull the description: line out of YAML frontmatter."""
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return "(unreadable)"
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return "(no frontmatter)"
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        # strip() first: a description: key indented by a hand-edited or
+        # generator-written frontmatter block is still the description, and
+        # matching at column 0 only would report it as missing.
+        if line.strip().lower().startswith("description:"):
+            return line.split(":", 1)[1].strip().strip("\"'") or "(empty)"
+    return "(no description)"
+
+
+def collect_skills():
+    found, seen = [], set()
+    for root in skill_roots():
+        if not root.is_dir():
+            continue
+        try:
+            paths = sorted(root.rglob("SKILL.md"))
+        except OSError:
+            continue
+        for path in paths:
+            if SKIP_DIRS.intersection(path.relative_to(root).parts):
+                continue
+            try:
+                key = str(path.resolve())
+            except OSError:
+                continue
+            if key in seen:
+                continue
+            seen.add(key)
+            found.append((path.parent.name, path, age_days(path)))
+    found.sort(key=lambda item: item[2], reverse=True)   # oldest first
+    return found
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Inventory skills and memory produced by the learning loop.")
+    parser.add_argument("--stale", type=int, default=None,
+                        help="filter the SKILLS section to entries older than "
+                             "N days; MEMORY and LEDGER always print in full")
+    parser.add_argument("--paths", action="store_true",
+                        help="print the resolved write targets and exit")
+    parser.add_argument("--locate", metavar="NAME",
+                        help="print the full path of every skill with this "
+                             "name, across all roots, and exit")
+    parser.add_argument("--duplicates", action="store_true",
+                        help="rank skill pairs by description similarity and "
+                             "exit; a shortlist for the manual overlap read, "
+                             "not a verdict")
+    parser.add_argument("--threshold", type=float, default=DUPLICATE_THRESHOLD,
+                        help="minimum similarity ratio (0-1) for --duplicates "
+                             "to report a pair (default: %s)" % DUPLICATE_THRESHOLD)
+    args = parser.parse_args()
+
+    if args.duplicates:
+        skills = collect_skills()
+        pairs = []
+        for i in range(len(skills)):
+            name_a, path_a, _ = skills[i]
+            desc_a = description_of(path_a)
+            for j in range(i + 1, len(skills)):
+                name_b, path_b, _ = skills[j]
+                desc_b = description_of(path_b)
+                ratio = difflib.SequenceMatcher(None, desc_a, desc_b).ratio()
+                if ratio >= args.threshold:
+                    pairs.append((ratio, name_a, name_b))
+        pairs.sort(reverse=True)
+        if not pairs:
+            print("(none)")
+        for ratio, name_a, name_b in pairs:
+            print("%.2f  %s <-> %s" % (ratio, name_a, name_b))
+        return 0
+
+    if args.locate:
+        # forget has to show the user the exact thing it is about to delete.
+        # The SKILLS listing prints the directory name only, clipped at
+        # NAME_CHARS, so reconstructing a path from it means guessing — and
+        # the same slug can exist under more than one root, where a guess
+        # deletes the wrong one and the confirmation certifies it.
+        #
+        # Match the clipped form too — the listing is what the caller reads,
+        # so requiring the full name would make anything longer than
+        # NAME_CHARS unreachable from the only view that names it. But only
+        # then: a bare prefix must not match. `--locate deploy` resolving to
+        # deploy-staging would sail past the miss branch and reach forget's
+        # Show step looking like a verified hit, which is the guess this
+        # command exists to replace.
+        clipped = args.locate.endswith("...")
+        query = args.locate[:-3] if clipped else args.locate
+        hits = [path.parent for name, path, _ in collect_skills()
+                if name == args.locate or (clipped and query and name.startswith(query))]
+        for directory in hits:
+            # The directory, not its SKILL.md: forget deletes the whole
+            # <slug>/ tree including supporting files, and showing only the
+            # one file would confirm less than gets removed.
+            print(directory)
+        if not hits:
+            print("no skill named %r under: %s"
+                  % (args.locate, ", ".join(str(r) for r in skill_roots())))
+            return 1
+        return 0
+
+    if args.paths:
+        # The skills that write have to land where this script reads, and a
+        # skill cannot resolve the environment itself: a shell expansion like
+        # ${GROWTH_LOOP_HOME:-...} is refused outright by some PreToolUse hook
+        # policies, and a hardcoded path desynchronises the moment anyone
+        # overrides the roots. So resolution happens here, once, and both
+        # sides read the same answer.
+        print("skills-root: %s" % skill_roots()[0])
+        print("profile: %s" % (home() / "profile.md"))
+        print("candidates: %s" % (home() / "candidates.md"))
+        return 0
+
+    print("SKILLS")
+    print("=" * 6)
+    shown = 0
+    for name, path, age in collect_skills():
+        if args.stale is not None and age < args.stale:
+            continue
+        shown += 1
+        flag = "STALE " if age >= STALE_DAYS else "      "
+        desc = clip(description_of(path), DESC_CHARS)
+        print("%s%-*s %5s  %s"
+              % (flag, NAME_CHARS, clip(name, NAME_CHARS), "%dd" % int(age), desc))
+    if shown == 0:
+        print("  (none)")
+
+    print("\nMEMORY")
+    print("=" * 6)
+    targets = [expand(m) for m in memory_files()] + [home() / "profile.md"]
+    for target in targets:
+        try:
+            stat = target.stat()
+        except OSError:
+            continue
+        print("  %-*s %5s  %d bytes"
+              % (MEMORY_PATH_CHARS, clip_path(str(target), MEMORY_PATH_CHARS),
+                 "%dd" % int(age_days(target)), stat.st_size))
+
+    print("\nLEDGER")
+    print("=" * 6)
+    try:
+        count = sum(1 for line in
+                    (home() / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
+                    if line.strip())
+    except OSError:
+        count = 0
+    print("  %d nudge(s) recorded in %s" % (count, home() / "ledger.jsonl"))
+
+    print("\nCANDIDATES")
+    print("=" * 10)
+    try:
+        # A jot is a level-2 heading ("## <date> — <title>"); counting those
+        # rather than lines gives the number of pending entries, not the
+        # number of lines they happen to span.
+        jots = sum(1 for line in
+                   (home() / "candidates.md").read_text(encoding="utf-8").splitlines()
+                   if line.startswith("## "))
+    except OSError:
+        jots = 0
+    print("  %d pending jot(s) in %s" % (jots, home() / "candidates.md"))
+
+    # The spec's closing line called a never-invoked skill probably-finished
+    # work. Nothing here tracks invocations — the ledger counts nudges, not
+    # skill runs — so that sentence invited an inference off data this tool
+    # does not have. Age is what it actually knows; the deciding question is
+    # whether the thing the skill describes still exists.
+    print("\nStale means one of two things and you have to say which: finished "
+          "work to delete, or drifted knowledge to re-verify. Age alone does "
+          "not separate them — ask whether the thing the skill describes is "
+          "still there. Nothing here records how often a skill ran, so do not "
+          "read the ledger count as usage.")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except BrokenPipeError:
+        sys.exit(0)

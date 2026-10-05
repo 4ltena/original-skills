@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Search Claude Code session transcripts. Deterministic, stdlib-only, offline.
+
+Searching transcripts with the model would burn the very context the loop
+exists to protect, so the search happens out here and the model only reads
+the summary.
+"""
+import argparse
+import json
+import os
+import re
+import sys
+import time
+from pathlib import Path
+
+# Storage locations drift between versions and platforms; never hardcode one.
+CANDIDATE_ROOTS = (
+    "~/.claude/projects",
+    "~/.claude/sessions",
+    "~/.codex/sessions",
+    "~/.config/claude/projects",
+    "~/Library/Application Support/Claude/projects",
+    "~/Library/Application Support/ClaudeCode/projects",
+)
+SNIPPET_CHARS = 400          # tunable: window around each match
+DEFAULT_DAYS = 90            # tunable: how far back to look; larger = slower scans of old sessions
+DEFAULT_MAX = 25             # tunable: hit cap when --max isn't given; larger = more stdout to read/summarise
+TOOL_INPUT_CHARS = 200       # tunable: tool_use input preview length; larger = noisier snippets, more matched text
+TOOL_RESULT_CHARS = 200      # tunable: tool_result preview length; larger = noisier snippets, more matched text
+
+
+def searched_paths():
+    """Every path we will attempt, in order — env override, or every candidate.
+
+    Single source of truth for "what did we search": discover_roots() filters
+    this same list down to the ones that actually exist, so the two can never
+    drift into naming different paths.
+    """
+    env = os.environ.get("CLAUDE_TRANSCRIPT_DIR")
+    if env:
+        return [str(Path(p).expanduser()) for p in env.split(os.pathsep) if p]
+    return [str(Path(c).expanduser()) for c in CANDIDATE_ROOTS]
+
+
+def discover_roots():
+    """Every searched_paths() candidate that exists, deduped by resolved path."""
+    roots, seen = [], set()
+    for p in searched_paths():
+        c = Path(p)
+        try:
+            if not c.is_dir():
+                continue
+            key = str(c.resolve())
+        except OSError:
+            continue
+        if key not in seen:
+            seen.add(key)
+            roots.append(c)
+    return roots
+
+
+def jsonl_files(root):
+    """Yield every *.jsonl under root, surviving an unreadable subtree.
+
+    rglob() is a generator function: calling it never raises, so guarding the
+    call guards nothing. Anything that goes wrong surfaces while iterating,
+    which is what this wraps.
+    """
+    try:
+        for path in root.rglob("*.jsonl"):
+            yield path
+    except OSError:
+        return
+
+
+def transcripts(roots, days):
+    cutoff = time.time() - days * 86400
+    found = []
+    for root in roots:
+        for f in jsonl_files(root):
+            try:
+                mtime = f.stat().st_mtime
+            except OSError:
+                continue
+            if mtime >= cutoff:
+                found.append((mtime, f))
+    found.sort(key=lambda pair: pair[0], reverse=True)   # newest session first
+    return found
+
+
+def clip(text, limit):
+    """Truncate with a visible marker, so a cut is never read as an ending."""
+    return text if len(text) <= limit else text[:limit] + "..."
+
+
+def block_text(content):
+    """Flatten a message content field into searchable text."""
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return ""
+    parts = []
+    for block in content:
+        if not isinstance(block, dict):
+            continue
+        kind = block.get("type")
+        if kind in ("text", "input_text", "output_text"):
+            parts.append(str(block.get("text", "")))
+        elif kind == "tool_use":
+            raw = json.dumps(block.get("input", {}), ensure_ascii=False)
+            parts.append("[%s] %s" % (block.get("name", "tool"),
+                                      clip(raw, TOOL_INPUT_CHARS)))
+        elif kind == "tool_result":
+            body = block.get("content")
+            if not isinstance(body, str):
+                body = json.dumps(body, ensure_ascii=False)
+            parts.append("[result] " + clip(body, TOOL_RESULT_CHARS))
+    return "\n".join(p for p in parts if p)
+
+
+def codex_record(payload):
+    """Return (role, text) for one Codex rollout item, or None to skip it.
+
+    Codex logs injected instructions as developer messages; they are rules,
+    not conversation, so they stay out of the search.
+    """
+    kind = payload.get("type")
+    if kind == "message":
+        role = str(payload.get("role", "?"))
+        if role in ("developer", "system"):
+            return None
+        return role, block_text(payload.get("content"))
+    if kind in ("function_call", "custom_tool_call"):
+        raw = payload.get("arguments") or payload.get("input") or ""
+        return "assistant", "[%s] %s" % (payload.get("name", "tool"),
+                                         clip(str(raw), TOOL_INPUT_CHARS))
+    if kind in ("function_call_output", "custom_tool_call_output"):
+        body = payload.get("output")
+        if not isinstance(body, str):
+            body = block_text(body) if isinstance(body, list) else json.dumps(
+                body, ensure_ascii=False)
+        return "?", "[result] " + clip(body, TOOL_RESULT_CHARS)
+    return None
+
+
+def records(path):
+    """Yield (role, text) per line, skipping anything unparseable."""
+    try:
+        handle = open(path, "r", encoding="utf-8", errors="replace")
+    except OSError:
+        return
+    with handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except (ValueError, TypeError):
+                continue
+            if not isinstance(rec, dict):
+                continue
+            payload = rec.get("payload")
+            if rec.get("type") == "response_item" and isinstance(payload, dict):
+                item = codex_record(payload)
+                if item and item[1]:
+                    yield item
+                continue
+            message = rec.get("message")
+            if not isinstance(message, dict):
+                continue
+            text = block_text(message.get("content"))
+            if text:
+                yield str(message.get("role", "?")), text
+
+
+def window(text, match):
+    half = SNIPPET_CHARS // 2
+    start = max(0, match.start() - half)
+    end = min(len(text), match.end() + half)
+    snippet = text[start:end].replace("\n", " ")
+    return ("..." if start > 0 else "") + snippet + ("..." if end < len(text) else "")
+
+
+def build_pattern(query):
+    try:
+        return re.compile(query, re.IGNORECASE)
+    except re.error:
+        return re.compile(re.escape(query), re.IGNORECASE)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Search Claude Code session transcripts.")
+    parser.add_argument("query", nargs="?", help="regex; falls back to literal")
+    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
+    parser.add_argument("--max", type=int, default=DEFAULT_MAX, dest="max_hits")
+    parser.add_argument("--list-roots", action="store_true")
+    args = parser.parse_args()
+
+    roots = discover_roots()
+    if not roots:
+        sys.stderr.write(
+            "gl-recall: no transcript root found. Searched:\n" +
+            "".join("  %s\n" % p for p in searched_paths()) +
+            "Set CLAUDE_TRANSCRIPT_DIR to the directory holding your .jsonl "
+            "session files and run again.\n")
+        return 1
+
+    if args.list_roots:
+        for root in roots:
+            count = sum(1 for _ in jsonl_files(root))
+            print("%s  (%d transcript(s))" % (root, count))
+        return 0
+
+    if not args.query:
+        parser.error("a query is required unless --list-roots is given")
+
+    pattern = build_pattern(args.query)
+    hits = 0
+    sessions = 0
+    # What was actually lost, tracked separately: whole sessions never
+    # opened, and matches found inside a session but not printed. Reporting
+    # a cut that did not happen is the same defect as hiding one — an
+    # exhausted search whose count lands exactly on --max must stay silent,
+    # or the skill re-runs a search that was already complete and reports
+    # the history as possibly incomplete when it is not.
+    unread = 0
+    dropped_within_session = False
+    scanned = transcripts(roots, args.days)
+    for index, (mtime, path) in enumerate(scanned):
+        if hits >= args.max_hits:
+            # Sessions are ordered newest first, so the rest were never
+            # read. `index` is how many were, matched or not — counting only
+            # the matched ones would report nearly every transcript as
+            # unread on a selective query, and this number is the whole
+            # basis for deciding how far to raise --max.
+            unread = len(scanned) - index
+            break
+        session_hits = []
+        for role, text in records(path):
+            for match in pattern.finditer(text):
+                session_hits.append((role, window(text, match)))
+                break                     # one snippet per record keeps it readable
+            # Collect one past the cap before stopping. Breaking exactly at
+            # it cannot distinguish "this was the last match" from "there
+            # were more", which is what made an exact fit look truncated.
+            if hits + len(session_hits) > args.max_hits:
+                break
+        if not session_hits:
+            continue
+        room = args.max_hits - hits
+        if len(session_hits) > room:
+            dropped_within_session = True
+        session_hits = session_hits[:room]
+        sessions += 1
+        hits += len(session_hits)
+        stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(mtime))
+        print("\n%s (%s)" % (path.stem, stamp))
+        print("-" * (len(path.stem) + len(stamp) + 3))
+        for role, snippet in session_hits:
+            print("  %s: %s" % (role, snippet))
+
+    print("\n%d match(es) across %d session(s)" % (hits, sessions))
+    if unread or dropped_within_session:
+        # Both losses can happen in one run, and an if/elif would report the
+        # session count while silently swallowing the drops — which is the
+        # same misdescription this notice exists to prevent. Name each one
+        # that actually occurred.
+        lost = []
+        if unread:
+            lost.append("%d older session(s) were not read" % unread)
+        if dropped_within_session:
+            lost.append("further matches inside the sessions that were read "
+                        "were not printed")
+        print("stopped at the --max limit of %d; %s. Raise --max to see more."
+              % (args.max_hits, " and ".join(lost)))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except BrokenPipeError:
+        sys.exit(0)
