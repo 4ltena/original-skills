@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "site-account-catalog"
+version = "0.1.0"
+description = "Local account catalog and isolated credential broker"
+requires-python = ">=3.10"
+dependencies = ["cryptography>=46", "paramiko>=4"]
+license = {file = "LICENSE"}
+
+[project.scripts]
+accountctl = "account_catalog.cli:main"
+account-broker = "account_catalog.service:main"
+
+[tool.setuptools.packages.find]
+include = ["account_catalog*"]
