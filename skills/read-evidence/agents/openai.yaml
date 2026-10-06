@@ -1,0 +1,4 @@
+interface:
+  display_name: "Read Evidence"
+  short_description: "Save and reuse evidence with provenance and freshness"
+  default_prompt: "Use $read-evidence to save or reuse bounded non-secret evidence with provenance and freshness checks."

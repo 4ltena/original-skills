@@ -1,17 +1,18 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: ux-spike
-description: "UI方針を仕様化する前に触れる試作で確かめる。方針変更時にも使う。既存の実物で判断できる場合は不要。"
+description: Prototype an unsettled interface direction before specification; skip
+  when the existing artifact resolves the choice.
 ---
 
-# UX の試作
+# UX prototype
 
-争点の画面と判断に絞る。選択の余地がなければ省略する。利用可能な `frontend-design`、Apple向けなら `apple-design-principles` を先に読み、既存の要求と実内容を使う。
+Focus on the disputed screen and decision; skip prototyping when there is no choice to resolve. Use existing requirements and real content. Load available frontend-design only for aesthetic decisions, and apple-design-principles when Apple interaction principles are relevant.
 
-利用できる対話的な試作手段を選び、なければ単一のローカルHTMLで触れる試作を提示し、同じ成果物を更新する。無断公開しない。確かめるのは構成・優先順位・遷移で、試作コードを実装へ持ち込まず、HTMLからネイティブ操作を決めない。
+Choose an available interactive prototype method; otherwise offer a single local HTML prototype and update that same artifact. Do not publish without authorization. Check structure, priorities and transitions. Do not promote prototype code into implementation or infer native interactions from HTML.
 
-確認範囲と未確認の挙動を明示し、判断を求める問いを別に出す。回答前に選択を確定せず、反応を仕様へ戻す。方針が変われば再確認する。
+State observed scope and untested behavior, and ask the decision question separately. Do not settle the choice before the user's answer. Feed responses back into the specification and recheck when direction changes.
 
-出典：`~/.claude/skills/ux-spike/SKILL.md` のCodex向け再構成。
+Source: adapted for Codex from `~/.claude/skills/ux-spike/SKILL.md`.

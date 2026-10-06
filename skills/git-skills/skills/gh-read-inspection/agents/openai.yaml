@@ -1,4 +1,4 @@
 interface:
-  display_name: "GitHub CLI Read Inspection"
-  short_description: "browser起動と変更操作を拒否してGitHub情報を閲覧"
-  default_prompt: "Use $gh-read-inspection to inspect GitHub repositories, pull requests, issues, runs, and releases without mutations."
+  display_name: GitHub Read Inspection
+  short_description: Inspect GitHub through the applicable read boundary
+  default_prompt: Use $gh-read-inspection to inspect the requested GitHub information.

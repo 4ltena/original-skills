@@ -1,25 +1,20 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: design-generation
-description: "ブランドを統一した反復制作を、固定テンプレート・承認素材・原稿・台帳で設計する。一度限りの制作は除く。"
+description: Design repeated branded visual production using templates, approved assets
+  and a generation ledger; not one-off work.
 ---
 
-# 反復する視覚制作
+# Repeated visual production
 
-レイアウト・余白・ロゴ・文字組みは決定的なテンプレートへ置く。モデルは確定原稿を変えず、許可値と承認済みマニフェストからの素材選択だけを構造化して返す。テンプレートとブランド正典の変更は工程保守として扱う。明示された新規素材の依頼は画像生成スキルで作り、採用後に追加する。
+Put layout, spacing, logos and typography in deterministic templates. The model returns structured selections from allowed values and approved asset manifests without changing finalized copy. Treat template or brand-canonical changes as workflow maintenance. Create explicitly requested new assets with the applicable image-generation skill and add them after acceptance.
 
-台帳で原稿・文脈と、生成ID・テンプレート版・素材・成果物・検証所見を分ける。空の出力IDを生成対象とし、再生成も状態変更で扱う。処理中・失敗状態を定義して重複起動を防ぐ。
+Separate copy/context from generation IDs, template versions, assets, outputs and verification findings in the ledger. Empty output IDs identify work to generate; regeneration is another state change. Define in-progress and failure states to prevent duplicate starts.
 
-検証所見を残し、見た目の採否は利用者へ返す。危険や失敗を通す規則にしない。未確定原稿は案を記録して確認を待つ。単発制作は形式別スキルを使い、外部台帳・投稿・公開は依頼範囲を守る。
+Record verification findings and leave visual acceptance to the user. Do not turn acceptance rules into permission to pass dangerous or failed results. Record proposals for unfinished copy and wait for confirmation. Use format-specific skills for one-off work; external ledgers, posts and publication remain within the requested scope.
 
-## 書体と文字組み
+For font selection or text-heavy outputs, read [typography](references/typography.md). Otherwise no typography reference is needed.
 
-HPのデザイン画像を制作する場合も、書体は用途・読者・ブランド・使用言語に合わせて選ぶ。目新しさだけで選ばず、既存の指定書体や標準書体も適切なら使う。見出し・本文・操作ラベルの役割を定め、書体数を増やす前にサイズ・ウェイト・行間・余白で階層を整える。複数書体は差の強さより、字面の大きさ・太さ・雰囲気の調和を見る。
-
-日本語と英数字が混在する実際の原稿で、字面・ベースライン・約物・改行を確認する。欧文向けの字間や行長を日本語へ一律に当てない。用途上の理由がない極端な細字・太字・長体・斜体や字間の詰めすぎを避け、想定する表示サイズで見出しと本文の読みやすさを確認する。承認した書体・ウェイト・文字組みの値はテンプレートへ記録する。
-
-画像生成へ渡す指示にも文字の役割と書体の特徴を含める。生成画像は書体名どおりの再現や正確な原稿・字形を保証しないため、見た目の参考案と確定した文字組みを区別する。正確な文字が必要な成果物では、画像素材と文字を分け、テンプレートやHTML/CSSで文字を組む。レビューでは日本語だけ異なる雰囲気の書体になっていないか、字形・太さ・間隔・階層に違和感がないかを確認し、問題箇所を直してから採否へ回す。
-
-出典：`~/.claude/skills/design-generation/SKILL.md` のCodex向け再構成。
+Source: adapted for Codex from `~/.claude/skills/design-generation/SKILL.md`.

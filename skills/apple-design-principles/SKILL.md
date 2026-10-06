@@ -1,19 +1,20 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: apple-design-principles
-description: "Apple の8原則で画面・操作の設計とレビューを行う。API仕様やHIG全体の適合判定は対象外。"
+description: Apply the supplied Apple design principles to interface design or review;
+  not API or complete HIG compliance.
 ---
 
-# Apple のデザイン原則
+# Apple design principles
 
-[日本語集約版](references/apple-design-principles.md)を先に読む。利用者提供の要約であり、公式翻訳・HIG全体・API仕様ではない。取得日や更新日は資料の報告として扱う。
+Read the [supplied summary](references/apple-design-principles.md) first. It is a user-supplied synthesis, not an official translation, the complete HIG or an API specification. Treat acquisition and update dates as claims recorded by that source.
 
-対象プラットフォーム、利用者、主要タスク、設計判断を定め、8原則から関係するものを選ぶ。既存の要求・デザインシステムを踏まえ、到達性、復元、権限拒否、一貫性、文字拡大、入力方法、状態伝達などの具体的な挙動へ結び付ける。毎回8原則を列挙しない。
+Identify the platform, audience, primary task and design decision, then select relevant principles. Connect existing requirements and design systems to concrete behavior: reachability, recovery, denied permissions, consistency, text scaling, input methods and state communication. Do not enumerate all eight principles every time.
 
-レビューは画面・コード・試作を根拠に、操作、影響、原則、最小の改善案、確認方法を示す。未観察の挙動を欠陥と断定せず、問題がなければ明記する。
+Ground reviews in screens, code or prototypes. State the interaction, impact, principle, smallest improvement and check. Do not call unobserved behavior a defect; say when no supported issue remains.
 
-第3章の質問は独自の例で、Appleの必須検査や適合認証ではない。原則から寸法や装飾の固定値を導かない。OS・部品・寸法・API・最新の適合性は該当するApple公式文書で確認し、未確認事項を区別する。
+The questions in section 3 are the summary author's examples, not Apple's mandatory tests or certification. Do not derive fixed dimensions or decoration from a principle. Verify OS, component, dimension, API and current compliance details in the applicable official Apple documentation and distinguish unverified claims.
 
-方針比較には利用可能な `ux-spike` を使う。HTMLからネイティブ操作を決めない。Figma・SwiftUI作業は対象別スキルに従う。編集・公開の権限は増えない。
+Use available ux-spike only when a direction needs comparison. HTML does not establish native interaction behavior. Use the relevant available Figma or SwiftUI skill for those tasks. This skill grants no editing or publishing authority.

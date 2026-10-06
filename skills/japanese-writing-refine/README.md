@@ -1,26 +1,24 @@
 # japanese-writing-refine
 
-既存の日本語文章を校正・推敲し、文脈に合わない定型表現を整える Agent Skill です。小説の完成稿に対する AI らしい表現の確認は、語彙・接続詞・文末の3点に限定します。
+Proofread and refine existing Japanese prose. Reviews of AI-like phrasing in completed novels are limited to vocabulary, connectives and sentence endings.
 
-## インストール
+## Install
 
-このリポジトリのルートで実行します。
+From this component's root:
 
 ```sh
 mkdir -p ~/.agents/skills
 cp -R skills/japanese-writing-refine ~/.agents/skills/
 ```
 
-別の Agent Skills 対応クライアントでは、そのクライアントが指定するスキル配置先へ `skills/japanese-writing-refine/` をコピーしてください。スキルが表示されない場合はクライアントを再起動します。
+For other Agent Skills clients, copy the skill into that client's designated directory. Restart the client if discovery has not refreshed.
 
-## 使い方
+## Use
 
-- 「この案内文を校正して」：誤記や文法、表記の不一致を確認します。
-- 「この説明を推敲して」：意味と事実を保ち、読みづらい箇所に修正案を出します。
-- 「この小説の完成稿から AI らしい表現だけを確認して」：指定された3点だけを確認します。
+- Request proofreading to check typos, grammar and inconsistent notation.
+- Request refinement to improve readability while preserving meaning and facts.
+- Request a limited completed-novel review to check only the three categories above.
 
-完成稿の小説ルートは、必要なら `refine-ja` や `novel-style-skills` などで本文を仕上げた後に使用します。これらをインストールしていなくても、完成稿を渡せば3点の確認はできます。
+Other requested novel-refinement processes come first; they are optional dependencies. This skill does not detect authorship, conduct external fact checking or independently audit arguments. Meaning-changing decisions remain with the writer.
 
-本スキルは文章の作者や作成手段を判定しません。外部の事実確認や、独立した論証監査も行いません。文章の意味を変える判断は書き手に残します。
-
-ライセンスは [MIT](LICENSE) です。
+License: [MIT](LICENSE).

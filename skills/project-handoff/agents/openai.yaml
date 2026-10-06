@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Handoff"
+  short_description: "Resume and preserve verified project state"
+  default_prompt: "Use $project-handoff to resume or update the existing project handoff."

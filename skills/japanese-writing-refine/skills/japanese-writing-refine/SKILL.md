@@ -1,62 +1,32 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: japanese-writing-refine
-description: 既存の日本語文章の校正・推敲、文脈に合わないAI的な定型表現の確認に使う。小説完成稿のAIらしさ確認は語彙・接続詞・文末の3点だけに限定する。新規執筆や独立した論証監査には使わない。
+description: Refine existing Japanese prose; completed-novel AI-like phrasing review
+  is limited to vocabulary, connectives and endings.
 ---
 
-# 日本語文章を推敲する
+# Refine existing Japanese prose
 
-文章の用途と書き手の意図を先に捉え、必要な箇所だけ直す。語句だけで AI 生成と判定したり、文章の美しさを採点したりしない。
+Understand the document's purpose and the writer's intent; edit only where needed. Wording alone does not establish AI authorship, and prose beauty is not a scoring task.
 
-## 守るもの
+## Preserve meaning
 
-- 主張、事実、留保、否定・条件・例外の範囲、因果、比重、時系列、数字、固有名詞、引用、用語、視点、人物の口調を保つ。評価・説明・依頼・決まり・予定という文の働きも保つ。情報や体験、感情を足して「人間らしく」しない。
-- 原文にない根拠や数値で曖昧さを埋めない。確認が必要な箇所は修正案と分けて示す。確かな留保を断定へ変えない。
-- コード、コマンド、識別子、引用文、意図的な表記は原則として編集対象から外す。文体や用語集の指定があればそれを優先する。
-- 同じ語、接続詞、文末が現れただけでは欠陥としない。文脈上の役割を確かめる。
+Preserve claims, facts, caveats, the scope of negation/conditions/exceptions, causality, emphasis, chronology, numbers, names, quotations, terms, viewpoint and character voice. Preserve each sentence's function as evaluation, explanation, request, rule or plan. Do not add information, experience or emotion to make text appear human.
 
-## 依頼から経路を選ぶ
+Do not fill ambiguity with invented evidence or figures. Separate confirmation questions from edits and never turn a justified caveat into certainty. Normally exclude code, commands, identifiers, quotations and deliberate spellings; respect the supplied style or glossary. Repetition alone is not a defect: examine its contextual role.
 
-**校正・通常の推敲**：小説を含む既存文を対象に、依頼された誤記、文法、表記、読みやすさを確認する。校正だけの依頼では表現や構成を勝手に変えない。
+## Choose the requested mode
 
-**実用文の AI 的な表現の確認**：案内、記事、技術文書、業務文などで、意味のない評価語、出所が曖昧な根拠、論理関係に合わない接続、型に合わせた不自然な列挙、単調な文末、定型的な前置きや結びを確認する。現に不自然な箇所だけ直し、適切な敬語、専門語、必要な箇条書きや反復は残す。
+- For proofreading or ordinary refinement, including fiction, read [proofreading](references/proofreading.md). A proofreading-only request does not authorize stylistic or structural rewriting.
+- For AI-like phrasing in practical prose, use the practical-prose guidance in that same reference; retain appropriate politeness, terminology, lists and necessary repetition.
+- For AI-like phrasing in a completed novel, read only [novel cues](references/novel-cues.md). Its checks are limited to vocabulary, connectives and endings. An explicit ordinary-proofreading request uses the first mode instead. Finish an unfinished novel before the limited review; any other requested refinement process precedes it.
 
-**完成済み小説の AI 的な表現の確認**：後述の3点だけを確認する。小説の誤字校正や通常推敲を明示された場合は、そちらの経路を使う。小説の本文が未完成なら、先に本文を仕上げる。`refine-ja` や `novel-style-skills` を使う場合も、その工程の後にこの限定確認を行う。
+## Verify and return
 
-## 校正・通常推敲で見ること
+Compare source and revision for actors/actions, modifier targets, conditions/exceptions/negation, claim strength and sentence function. Simplifying double negatives must preserve what is allowed and forbidden. Read surrounding passages for newly introduced awkwardness. Existing tools supply candidates, not automatic replacement, author detection or a score to optimize. Preserve unresolved meaning and flag it. In the limited novel mode, this check applies only to the three permitted changes and their meaning/voice.
 
-1. **正確さ**：誤記、助詞や敬語の誤り、同じ概念の表記・呼称の混在を探す。会話、方言、くだけた文体では意図的な形を尊重する。
-2. **読み取りやすさ**：語を置き換える前に、述語ごとの主体・対象と、修飾語・指示語・条件・否定の対応を確かめる。主体が途中で変わる文、長い修飾や名詞の連鎖、否定や条件の入れ子で読み戻しが必要な箇所を優先する。語順、読点、文の分割は、その対応を保って負担を減らせる場合に使う。長さや読点の数だけでは直さず、自然な主語省略も補わない。参照先が複数あるときは、近くの名詞に決めつけない。
-3. **説明の密度**：意味を増やさない重複や空疎な修飾を減らす。必要な繰り返しや定着した外来語は残す。直訳調は、日本語で読んだときに不自然な箇所だけ言い直す。
-4. **文末の立場**：常体・敬体と、各文が説明・依頼・決まり・予定のどれを伝えるかを分けて確認する。助言を筆者の予定にしたり、必須の手順を任意の勧めにしたり、実際の動作を可能表現に変えたりしない。語尾の反復を減らすために働きを変えず、適切な混在や敬語は残す。
-5. **根拠との対応**：文章中の事実から飛躍した解釈だけを指摘する。外部調査をしたふりをせず、論証全体の監査へ広げない。
+For proofreading, checking or refinement, show concise source excerpts and proposed edits. For an explicit rewrite, return revised text and explain only changes that may affect meaning. Do not default to rewriting a whole completed novel during its limited review. Say when no supported issue remains.
 
-実用文の通常推敲では、見出しと段落冒頭を続けて読み、話題の切替、前提の説明順、同じ説明の重複を確かめる。読者の知識と目的に照らし、説明が必要な用語だけを、原文で分かる役割とともに示す。見出しの結論化、箇条書きの文章化、段落の均一化を一律に行わない。校正のみの依頼や完成済み小説の限定確認へ、この構成点検を持ち込まない。
-
-実用文の比喩や定型表現は、何をどうするかが追えない箇所で見直す。道具の客観的な動作や定着した慣用句は残し、不自然な擬人化や直訳調だけを整える。曖昧な故障を特定の不整合へ狭めたり、気づかれなかったことを通知がなかった保証へ変えたりしない。「重要なのは」や否定対比を削る場合も、評価、否定、対比の役割が失われないか確かめる。
-
-断定できる誤りと、好みや文体に左右される提案を分ける。原文にない具体例を新しく書く必要がある場合は、書き手への確認事項にする。
-
-## 完成済み小説の限定確認
-
-この経路では次の3点以外を検査・修正しない。指摘は場面に即した箇所と最小の代案に限る。
-
-1. **AI 頻出語**：場面の人物・動作・感覚を何も明らかにしない定型的な評価語や抽象語。よく使う語でも、場面で具体的な働きがあれば残す。
-2. **不自然な接続詞**：前後の出来事に合わない論理関係を示す語、または場面の流れを妨げる機械的なつなぎ。出現回数だけで判定せず、人物固有の言い回しは残す。
-3. **文末の機械的反復**：近い位置の語尾が意図せず単調になった箇所。意図的な反復、台詞の癖、緊張や余韻を作るリズムは残す。
-
-Web 記事向けの導入・結語、箇条書き、ダッシュ、三項列挙、丁寧さの均一化はこの経路で点検しない。一人称の感想、新しい経験、描写や比喩を足さない。視点、語りの距離、場面の速度を保つ。
-
-## 修正後の確認
-
-原文と修正案を往復して読み、同じ語が残っているかだけでなく、誰が何をするか、修飾先、条件・例外・否定、主張の強さと文の働きが一致するか確かめる。二重否定の整理では、許される場合と許されない場合が逆転していないかを見る。修正した箇所の前後も読み、新しい不自然さが出た場合にその箇所を直す。既存の検査ツールを使う場合も、検出結果は候補として扱い、一括置換や作者判定、点数が上がるまでの反復は行わない。意味が未確定なら、滑らかな断定で埋めず、原文を残して不明点を示す。
-
-完成済み小説の限定確認では、この確認も指定された3点の修正と、その意味・口調の保持だけに適用する。
-
-## 返し方と長文
-
-「校正」「チェック」「推敲」は、原文中の該当箇所と修正案を短く示す。「リライト」「書き直して」は修正文を返し、意味に影響し得る変更だけ補足する。完成済み小説の限定確認では、全文書き換えを既定にしない。問題がなければ、無理に指摘を作らずその旨を伝える。
-
-長い文書は章・場面ごとに扱い、確認した範囲と未確認の範囲を明示する。処理した区切りの前後でも、接続詞と文末の反復を確認する。未確認部分まで読んだと報告しない。
+Work through long documents by chapter or scene, state reviewed and unreviewed scope, and check connective/ending continuity across processed boundaries. Never claim to have read unreviewed parts.

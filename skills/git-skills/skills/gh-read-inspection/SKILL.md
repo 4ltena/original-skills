@@ -1,15 +1,18 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: gh-read-inspection
-description: "Inspect GitHub through direct read-only gh commands in Codex standard, or the pinned validator in other presets."
+description: Inspect GitHub within the active host's read policy and required validator
+  boundary.
 ---
 
 # GitHub reads
 
-For Codex standard, read `/home/altena/.codex/standard-github-policy.md`. Direct read-only gh commands and REST/GraphQL queries are pre-authorized; the pinned validator is optional. Inspect the endpoint, HTTP method and GraphQL operation before treating API calls as reads. Do not display authentication tokens, execute extensions/aliases, or treat auth changes, downloads, checkouts and mutations as pure reads. `gh pr create --dry-run` may still push Git changes, so it is not a read-only inspection; use `gh-operations` and `git-operations` when appropriate.
+Follow the active host's read policy before choosing a command. A required validator stays mandatory; a legacy preset cannot make it optional. Direct gh or REST/GraphQL reads are permitted only when that active policy explicitly authorizes them; inspect the endpoint, HTTP method and operation first.
 
-For other presets, run `/usr/bin/python3 -I /home/altena/.codex/skills/gh-read-inspection/scripts/gh-read <command...>` with its accepted selectors and stdout formats. Exclude generic API, browser/watch/editor, output files, auth and mutations. Exit 64 means policy denial; 124 means timeout. Preserve normal gh authentication. GitHub or runtime denials are not permission to bypass a restriction.
+On this Windows installation, use `C:/Users/nisim/AppData/Local/Programs/Python/Python310/python.exe -I C:/Users/nisim/.agents/skills/gh-read-inspection/scripts/gh-read-windows.py <command...>`. It binds `C:/Program Files/GitHub CLI/gh.exe` (2.93.0 or newer) and preserves the existing Credential Manager login. Other platforms require their explicit verified host binding.
 
-On Windows, the validator is `C:/Users/nisim/AppData/Local/Programs/Python/Python310/python.exe -I C:/Users/nisim/.agents/skills/gh-read-inspection/scripts/gh-read-windows.py <command...>`. It applies the same grammar with `C:\Program Files\GitHub CLI\gh.exe` (2.93.0 or newer, so gh updates keep working) and keeps the Credential Manager login.
+Use accepted bounded selectors and stdout formats. The validator excludes generic API, browser/watch/editor, output files, authentication changes and mutations. Never display authentication tokens or execute extensions/aliases. Downloads and checkout are not pure inspection; `gh pr create --dry-run` may push and requires the applicable write permissions.
+
+Exit 64 means policy denial; 124 means timeout. Missing tooling, GitHub denial or runtime failure grants no alternate dispatch or broader permission.
