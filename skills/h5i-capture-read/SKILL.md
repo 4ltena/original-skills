@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: h5i-capture-read
 description: "Capture large non-secret project reads through the authorized h5i validator; not tests, builds or arbitrary commands."
 ---

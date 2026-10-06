@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: plan-review-loop
 description: "承認前の仕様・計画の説明と独立レビュー。説明だけの依頼にも使い、コードレビューは対象外。"
 ---

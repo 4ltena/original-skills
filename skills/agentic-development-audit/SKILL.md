@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: agentic-development-audit
 description: "Audit AI-development workflow behavior from run evidence, or compare measured quality and cost when requested. Use for explicit process audits, not ordinary code review."
 ---

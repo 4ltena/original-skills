@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: git-operations
 description: Carry out a requested local Git write or push, including gh repo sync without a destination repository, with scoped staging, destination checks, and recovery; not for GitHub-side writes, read-only inspection, or drafting text alone.
 ---

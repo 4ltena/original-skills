@@ -2,11 +2,12 @@
 name: frontend-optimize-apple
 license: MIT
 description: 'Profile and optimize Apple native frontend performance in SwiftUI, AppKit, UIKit and Core Animation/Metal. Use for UI hangs, hitches, slow updates, MainActor contention, concurrency, rendering, memory or launch regressions on macOS/iOS/iPadOS; route embedded WebViews separately. Includes performance-related ownership, local-first persistence, ACK/retry, migration and lifecycle correctness.'
-compatibility: 'Real profiling requires macOS, compatible Xcode/Instruments and target devices. Check Swift language mode, isolation settings and OS availability. Optional comparison helper needs Python 3.10+.'
 metadata:
-  version: "1.1.0"
+  compatibility: 'Real profiling requires macOS, compatible Xcode/Instruments and target devices. Check Swift language mode, isolation settings and OS availability. Optional comparison helper needs Python 3.10+.'
+  version: "1.1"
   researched: "2026-09-23"
   language: "en"
+  author: "4ltena"
 ---
 
 # Frontend Optimize — apple

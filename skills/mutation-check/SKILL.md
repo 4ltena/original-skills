@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: mutation-check
 description: Use when checking whether a test detects a specific defect. Apply one deliberate mutation, observe the expected failure, and restore the original file exactly.
 ---

@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: h5i-read-inspection
 description: "Inspect h5i through its pinned read validator; capture large, non-secret project reads with its capture command."
 ---

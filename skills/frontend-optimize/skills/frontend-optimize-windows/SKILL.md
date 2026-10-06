@@ -2,11 +2,12 @@
 name: frontend-optimize-windows
 license: MIT
 description: 'Diagnose and optimize Windows native frontend performance for WinUI 3, WPF and composition/DXGI-based apps. Use for Dispatcher stalls, input latency, XAML layout or binding overhead, list virtualization, GC, ETW/WPA traces and rendering hitches. Includes performance-related ownership, local-first persistence, ACK/retry, migration and lifecycle correctness.'
-compatibility: 'Real profiling requires Windows and the relevant app toolchain; WPR/WPA/ADK, Visual Studio or dotnet tools depend on target. Optional comparison helper needs Python 3.10+. Never change system tracing sessions without checking ownership.'
 metadata:
-  version: "1.1.0"
+  compatibility: 'Real profiling requires Windows and the relevant app toolchain; WPR/WPA/ADK, Visual Studio or dotnet tools depend on target. Optional comparison helper needs Python 3.10+. Never change system tracing sessions without checking ownership.'
+  version: "1.1"
   researched: "2026-09-23"
   language: "en"
+  author: "4ltena"
 ---
 
 # Frontend Optimize — windows

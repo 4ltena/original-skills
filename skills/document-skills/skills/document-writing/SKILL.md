@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-writing
 description: Draft a new reader-facing document from requirements and sources, including README and docs. Use for new writing, not an existing-text rewrite or review-only request.
 ---

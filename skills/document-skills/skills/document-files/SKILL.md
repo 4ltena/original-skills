@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-files
 description: Extract, convert, generate or verify PDF and DOCX documents with evidence from both source and rendered artifacts. Use when file-format behavior is central, not for ordinary prose review.
 ---

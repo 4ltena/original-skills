@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-rewriting
 description: Rewrite or explicitly summarize an existing reader-facing document while preserving requested claims and evidence. Use for substantive revision, not new drafting, style-only Japanese polishing or review-only work.
 ---

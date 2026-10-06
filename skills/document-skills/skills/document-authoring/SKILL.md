@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-authoring
 description: Review an existing draft against its request and supplied sources for accuracy and reader usability. Use for review-only work, not external source research, binary document processing or rewriting.
 ---

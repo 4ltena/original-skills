@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: apple-design-principles
 description: "Apple の8原則で画面・操作の設計とレビューを行う。API仕様やHIG全体の適合判定は対象外。"
 ---

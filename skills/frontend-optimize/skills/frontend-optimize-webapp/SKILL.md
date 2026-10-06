@@ -2,11 +2,12 @@
 name: frontend-optimize-webapp
 license: MIT
 description: 'Diagnose and optimize measured web frontend performance: input latency, jank, browser main/worker/worklet threads, layout, compositing, V8, memory, startup and hybrid WebViews. Use for slow, laggy, heavy or unresponsive web apps and browser traces; not for visual redesign alone. Includes performance-related ownership, local-first persistence, ACK/retry, migration and lifecycle correctness.'
-compatibility: 'Requires source access; real measurement needs a supported browser and profiler. Optional Python 3.10+ and browser JavaScript helpers. Works without network; recheck online sources when version-sensitive.'
 metadata:
-  version: "1.1.0"
+  compatibility: 'Requires source access; real measurement needs a supported browser and profiler. Optional Python 3.10+ and browser JavaScript helpers. Works without network; recheck online sources when version-sensitive.'
+  version: "1.1"
   researched: "2026-09-23"
   language: "en"
+  author: "4ltena"
 ---
 
 # Frontend Optimize — webapp

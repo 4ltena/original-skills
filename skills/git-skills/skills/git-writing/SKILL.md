@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: git-writing
 description: Draft clear commit messages, pull request descriptions, and review comments for a known change; not for Git mutations or read-only repository inspection.
 ---

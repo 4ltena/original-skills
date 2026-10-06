@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: task-relay
 description: "Execute a long approved numbered plan across fresh contexts when saved context outweighs rediscovery cost."
 ---

@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: japanese-writing-refine
 description: 既存の日本語文章の校正・推敲、文脈に合わないAI的な定型表現の確認に使う。小説完成稿のAIらしさ確認は語彙・接続詞・文末の3点だけに限定する。新規執筆や独立した論証監査には使わない。
 ---

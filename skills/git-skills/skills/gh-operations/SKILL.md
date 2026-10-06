@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: gh-operations
 description: Carry out a requested GitHub-side write to PRs, issues, repository branches, releases, secrets, Actions, settings, or the API, including remote repo sync and PR branch updates; not for reads, local Git writes, auth, extensions, checkout, or downloads.
 ---

@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: releasing
 description: "Manage licenses, versions and releases, including building and verifying desktop packages and download tables."
 ---

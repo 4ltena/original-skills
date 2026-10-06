@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: site-account-catalog
 description: Look up or maintain account identities, license wording, and product entitlements in a local catalog, or request registered login actions by ID through an isolated broker.
 ---

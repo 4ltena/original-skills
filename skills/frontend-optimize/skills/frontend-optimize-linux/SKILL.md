@@ -2,11 +2,12 @@
 name: frontend-optimize-linux
 license: MIT
 description: 'Profile and optimize Linux native frontend performance for Qt 6 Quick/Widgets, GTK 4 and Wayland/X11 applications. Use for GUI thread stalls, scene graph sync, GMainContext, model/delegate overhead, compositor/presentation delays, perf/Sysprof traces and memory or idle CPU regressions. Includes performance-related ownership, local-first persistence, ACK/retry, migration and lifecycle correctness.'
-compatibility: 'Real profiling requires a representative Linux desktop and target toolkit. Sysprof/perf availability and permissions vary. Optional comparison helper needs Python 3.10+. Do not alter global kernel, compositor or driver settings automatically.'
 metadata:
-  version: "1.1.0"
+  compatibility: 'Real profiling requires a representative Linux desktop and target toolkit. Sysprof/perf availability and permissions vary. Optional comparison helper needs Python 3.10+. Do not alter global kernel, compositor or driver settings automatically.'
+  version: "1.1"
   researched: "2026-09-23"
   language: "en"
+  author: "4ltena"
 ---
 
 # Frontend Optimize — Linux

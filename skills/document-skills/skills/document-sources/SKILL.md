@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-sources
 description: Research and verify sources, citations and claims for a document. Use when external evidence or citation checking is central; not for ordinary review of a supplied draft.
 ---

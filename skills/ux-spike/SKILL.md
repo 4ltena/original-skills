@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: ux-spike
 description: "UI方針を仕様化する前に触れる試作で確かめる。方針変更時にも使う。既存の実物で判断できる場合は不要。"
 ---

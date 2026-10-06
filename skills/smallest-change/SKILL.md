@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: smallest-change
 description: Use before a non-trivial code change to find the smallest correct fix, reuse existing facilities, address the shared cause, and verify the artifact that actually changed.
 ---

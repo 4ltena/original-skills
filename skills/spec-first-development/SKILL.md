@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: spec-first-development
 description: "Define approved specifications, acceptance criteria, milestones and safe parallel work for substantial changes or new projects."
 ---

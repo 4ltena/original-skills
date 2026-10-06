@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: document-translation
 description: Translate documents across languages or locales while checking meaning, omissions, protected syntax and locale-sensitive wording. Use when translation itself is the task.
 ---

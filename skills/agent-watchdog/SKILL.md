@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: agent-watchdog
 description: "Recover failed or stalled subagents and child Codex runs with bounded safe retries."
 ---

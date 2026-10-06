@@ -1,4 +1,7 @@
 ---
+metadata:
+  author: "4ltena"
+  version: "1.1"
 name: completion-report
 description: "Report completion and persist verified project handoffs after checks, on exit or when handoff is requested."
 ---
