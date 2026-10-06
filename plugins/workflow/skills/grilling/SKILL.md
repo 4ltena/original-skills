@@ -1,18 +1,18 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: grilling
-description: "重大な未決定の設計判断を依存順に詰める。通常の実装判断や既に承認済みの選択は除く。"
+description: Resolve consequential open design decisions in dependency order; not
+  routine implementation choices or approved decisions.
 ---
 
-# 判断を詰める
+# Resolve consequential decisions
 
-決定を依存関係の木にし、前提が決まった問いだけを一巡にまとめ、推奨と理由を添えて回答を待つ。回答で次の問いを組み替え、未回答の前提に依存する問いは後へ回す。
+Arrange decisions by dependency. Group only questions whose prerequisites are known into each round, include recommendations and reasons, then wait for answers. Reorganize subsequent questions from those answers and defer questions depending on unanswered prerequisites.
 
-事実は調査し、利用者には好み・制約・採否を聞く。委譲可能な独立調査の間も依存しない判断を進める。未提供のツールを想定せず、認知負荷を抑える。見ないと決まらないUIは `ux-spike` へ。
+Research facts; ask the user for preferences, constraints and acceptance. Continue independent decisions while authorized independent research proceeds. Do not assume unavailable tools; keep the user's cognitive load low. Use available ux-spike when a UI choice requires seeing a prototype.
 
-重大な未確定事項がなくなれば合意を短く示す。文書化・実装は `spec-first-development` に従い、このスキルではファイルを書かない。
+When no consequential open decision remains, summarize agreement briefly. Use available specification guidance for documentation and implementation. This skill itself does not write files.
 
-出典：`~/.claude/skills/grilling/SKILL.md` のCodex向け再構成。
-元の方法：mattpocock/skills の grilling（MIT、Matt Pocock / aihero.dev）。
+Source: adapted for Codex from `~/.claude/skills/grilling/SKILL.md`. Original approach: mattpocock/skills grilling, MIT, Matt Pocock / aihero.dev.

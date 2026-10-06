@@ -1,4 +1,0 @@
-interface:
-  display_name: "h5i Read Inspection"
-  short_description: "h5iの履歴と診断情報を状態変更なしで安全かつ自動的に閲覧"
-  default_prompt: "Use $h5i-read-inspection to inspect h5i history and diagnostics without changing repository state."

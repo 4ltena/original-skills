@@ -1,21 +1,22 @@
 ---
 metadata:
-  author: "4ltena"
-  version: "1.1"
+  author: 4ltena
+  version: '1.2'
 name: plan-review-loop
-description: "承認前の仕様・計画の説明と独立レビュー。説明だけの依頼にも使い、コードレビューは対象外。"
+description: Explain or independently review an unapproved specification or substantial
+  plan; not change review or approved-plan execution.
 ---
 
-# 計画レビュー
+# Plan review
 
-長い計画の承認前、または計画説明の依頼では、先に[説明手順](references/walkthrough.md)を読む。短く既読の計画は説明を省く。説明だけの依頼はそこで終え、承認済みの判断を再開しない。
+Before approving a substantial plan, or when explaining one is requested, read [walkthrough](references/walkthrough.md). Skip an explanation already read for a short plan. An explanation-only request ends there; do not reopen approved decisions.
 
-レビューが対象なら、計画・仕様・要求・制約を読み取り専用のレビュー役へ渡す。根拠付きで影響、要求漏れ、実現性、検証方法を調べさせ、未知の要求や指摘数・過剰防御を成果にしない。
+For a review, give the plan, specification, request and constraints to an available independent read-only reviewer. Ask for evidenced impacts, omissions, feasibility and verification gaps; invented requirements, finding counts and excessive defensive measures are not review outcomes.
 
-利用可能なCodex委譲手段を使う。同じモデルなら明示し、委譲不能なら独立レビュー未実施とする。自己点検を代用したと偽らず、ユーザー所有タスクを勝手に作らない。
+Use available Codex delegation. Disclose when the reviewer uses the same model; if delegation is unavailable, report that independent review was not performed. Do not label self-check as independent review or create user-owned tasks without authorization.
 
-R1-01等の番号、出典、影響、採否の推奨と理由を示し、利用者の裁定を待つ。明示的な裁定委任は範囲内で有効。承認済み計画の通常実行へ再挿入しない。
+Give each finding an ID such as R1-01, source, impact, recommendation and rationale. Wait for the user's disposition unless decision authority was explicitly delegated within scope. Do not insert this process again into ordinary execution of an approved plan.
 
-採用分は本文へ、却下理由は末尾のレビュー裁定へ記録する。却下済み事項は新証拠がなければ再提出しない。採用指摘がない周、または3周で終了。重大な未解決事項は仕様へ戻す。後続のコードレビュー・最終検証は省略しない。
+Integrate accepted findings and record rejected findings with reasons. Do not resubmit a rejected point without new evidence. Stop when a round has no accepted findings or after three rounds; unresolved substantive issues return to the specification. Subsequent change review and final verification remain required.
 
-出典：`~/.claude/skills/plan-review-loop/SKILL.md` のCodex向け再構成。
+Source: adapted for Codex from `~/.claude/skills/plan-review-loop/SKILL.md`.

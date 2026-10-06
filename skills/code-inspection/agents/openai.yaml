@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Inspection"
+  short_description: "Scoped code reading and simplification review"
+  default_prompt: "Use $code-inspection to inspect the requested code and report supported simplifications without applying fixes."

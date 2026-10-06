@@ -1,119 +1,118 @@
-# Appleデザイン原則 — 日本語集約版
+# Apple design principles: supplied summary
 
-取得日：2026年9月5日  
-原典の更新日：2026年6月8日  
-形式：公式ページの要点を再構成した要約。原文の転載・公式翻訳・HIG全体の完全収録ではない。
+Recorded acquisition: September 5, 2026. Recorded source update: June 8, 2026.
+This reorganizes the official page's main points; it is not a reproduction, official translation or complete HIG. The acquisition statements below describe the supplied source's investigation, not fresh verification during translation.
 
-## 1. 収集範囲
+## 1. Collection scope
 
-起点はAppleの[デザインの原則](https://developer.apple.com/jp/design/human-interface-guidelines/design-principles)。JavaScript実行後の本文とリンク構造を確認した。
+The starting point was Apple's [design principles](https://developer.apple.com/jp/design/human-interface-guidelines/design-principles). The investigator reported checking rendered content and links after JavaScript execution.
 
-このページの8原則は独立した子ページではなく、同じページ内のセクションである。本文には下位のHIG記事へのリンクはなく、補足動画へのリンクがある。そこで、8原則とその詳細項目を本書に整理し、補足動画の章構成を付した。
+The eight principles are sections of one page, not separate child pages. The body had supplementary video links but no links to subordinate HIG articles. This summary collects the principles and their details, followed by the supplementary video's chapter structure.
 
-左側のナビゲーションにある「基本要素」「パターン」「コンポーネント」「入力」「テクノロジー」や各プラットフォーム向け記事は、指定ページの子ページではない。本書ではその本文を収集していない。色、文字サイズ、余白、ボタン寸法などの個別仕様を網羅するには、HIG全体を別の起点として収集する必要がある。
+Navigation categories such as Foundations, Patterns, Components, Inputs, Technologies and platform articles are not children of the specified page. Their bodies were not collected. Covering individual color, font size, spacing or button dimensions would require a separate investigation of the complete HIG.
 
-## 2. 8原則と設計指針
+## 2. Principles and guidance
 
-以下はすべて[指定ページ](https://developer.apple.com/jp/design/human-interface-guidelines/design-principles)の要約。これらは判断の指針であり、固定された唯一の実装方法を指定するものではない。
+All items below summarize the [specified page](https://developer.apple.com/jp/design/human-interface-guidelines/design-principles). They guide judgment rather than prescribe a single implementation.
 
-| 原則 | 設計で重視すること |
+| Principle | Design focus |
 | --- | --- |
-| 目的（Purpose） | 利用者にとっての価値と主要な用途 |
-| 主体性（Agency） | 自由な操作と失敗からの復帰 |
-| 責任（Responsibility） | 誠実な説明と情報の保護 |
-| 親しみやすさ（Familiarity） | 既知の概念と一貫した反応 |
-| 柔軟性（Flexibility） | 多様な人・環境・操作方法への適応 |
-| シンプルさ（Simplicity） | 必要な機能に迷わず到達できる構造 |
-| 作り込み（Craft） | 細部の品質と継続的な改善 |
-| 喜び（Delight） | 用途に合う感情と体験全体の満足 |
+| Purpose | User value and primary use |
+| Agency | Freedom of action and recovery from mistakes |
+| Responsibility | Honest explanations and information protection |
+| Familiarity | Known concepts and consistent responses |
+| Flexibility | Adaptation to diverse people, environments and inputs |
+| Simplicity | Clear access to necessary functionality |
+| Craft | Quality in details and continued improvement |
+| Delight | Appropriate emotion and satisfaction across the experience |
 
-### 2.1 目的
+### 2.1 Purpose
 
-- 開発中も、提供価値と設計の適合性を問い直す。
-- 中核の用途に開発の力を集中する。
-- 既存の解決策を調べ、独自の改善を目指す。
+- Reconsider whether the design serves its intended value during development.
+- Focus effort on the core use.
+- Investigate existing solutions and seek a distinctive improvement.
 
-### 2.2 主体性
+### 2.2 Agency
 
-- 作業やコンテンツへの到達を妨げない。
-- 探索を許し、案内フローからも離脱できるようにする。
-- 取り消しや復元によって作業損失を防ぐ。
+- Do not obstruct access to work or content.
+- Permit exploration and departure from guided flows.
+- Prevent work loss through undo and recovery.
 
-### 2.3 責任
+### 2.3 Responsibility
 
-- 権限やデータ利用の理由を明らかにする。
-- 収集を必要最小限にし、悪用や被害を予防する。
+- Explain permissions and data use.
+- Minimize collection and prevent misuse or harm.
 
-### 2.4 親しみやすさ
+### 2.4 Familiarity
 
-- 生活や既存ソフトウェアで身についた知識を活用する。
-- 同じ要素の見た目と挙動を統一する。
-- 状態変化を伝え、システム標準の通知・選択パターンを使う。
+- Use knowledge learned in everyday life and existing software.
+- Keep equivalent elements consistent in appearance and behavior.
+- Communicate state changes and use platform notification and selection patterns.
 
-### 2.5 柔軟性
+### 2.5 Flexibility
 
-- 多様な利用者とアクセシビリティを初期設計から考慮する。
-- 環境が変わっても位置関係と操作の文脈を保つ。
-- 複数の入力手段を想定する。
-- 対応する各プラットフォームを丁寧に設計する。
+- Consider diverse users and accessibility from the initial design.
+- Preserve spatial relationships and interaction context as environments change.
+- Support multiple input methods.
+- Design each supported platform carefully.
 
-### 2.6 シンプルさ
+### 2.6 Simplicity
 
-- 重要な機能を使いやすい位置に置く。
-- ラベルと説明を短く明瞭にする。
-- 階層と操作の意味を理解しやすくする。
+- Place important functions where they are easy to use.
+- Keep labels and explanations concise and clear.
+- Make hierarchy and interaction meaning understandable.
 
-### 2.7 作り込み
+### 2.7 Craft
 
-- 視覚、動き、文章、音の品質を整える。
-- 試作と実環境での検証を繰り返す。
-- 公開後もプラットフォームの進化に合わせて改善する。
+- Attend to visual, motion, writing and sound quality.
+- Iterate with prototypes and real-environment checks.
+- Continue improving as platforms evolve after release.
 
-### 2.8 喜び
+### 2.8 Delight
 
-- 用途にふさわしい感情を設計する。
-- 小さな操作にもプロダクトの個性を反映する。
-- 演出が本来の作業を邪魔しないようにする。
-- 個別の装飾より、体験全体の配慮を積み重ねる。
+- Design emotions appropriate to the task.
+- Express product character even in small interactions.
+- Keep presentation from obstructing the user's work.
+- Build consideration across the whole experience rather than isolated decoration.
 
-## 3. 実装レビューへの適用例
+## 3. Example implementation questions
 
-以下は本書独自のレビュー用質問であり、Appleが示した検査項目や必須要件ではない。
+These questions were created for this summary; they are not Apple's mandatory requirements or checklist.
 
-- [ ] 初回起動から主要タスクを完了するまでの操作を、具体的なシナリオで確認したか。
-- [ ] 入力途中の離脱・通信失敗・誤操作で、どの情報が残るかを確認したか。
-- [ ] 同じ操作を行う画面同士で、ラベル・アイコン・結果を比較したか。
-- [ ] 権限を拒否した状態でも、可能な機能にアクセスできるか。
-- [ ] 文字拡大や異なる入力手段で、主要タスクを最後まで実行できるか。
-- [ ] 画面やウィンドウのサイズ変更で、編集中の対象を見失わないか。
-- [ ] 読み込み中・空の状態・エラー時の表示を個別に設計したか。
-- [ ] 装飾やアニメーションを加えた理由を、利用者の体験に結びつけて説明できるか。
-- [ ] リリース後に寄せられた問題を、設計改善へ戻す手順があるか。
+- [ ] Has a concrete scenario been checked from first launch to primary-task completion?
+- [ ] Is it known what survives interruption, network failure or a mistaken action?
+- [ ] Have labels, icons and outcomes been compared across equivalent interactions?
+- [ ] Are remaining available functions reachable after permission denial?
+- [ ] Can the main task be completed with enlarged text and different input methods?
+- [ ] Does resizing preserve awareness of the object being edited?
+- [ ] Are loading, empty and error states designed separately?
+- [ ] Can decoration or animation be justified through user experience?
+- [ ] Is there a process for turning post-release issues into design improvements?
 
-## 4. 補足動画
+## 4. Supplementary video
 
-指定ページからリンクされている[優れたデザインのための原則（WWDC26）](https://developer.apple.com/jp/videos/play/wwdc2026/250/)の概要と章構成を確認した。動画の全編再生やトランスクリプトの全文収録は行っていない。
+The investigator reported checking the overview and chapter structure of [principles for great design (WWDC26)](https://developer.apple.com/jp/videos/play/wwdc2026/250/), linked by the specified page. The whole video was not watched and its complete transcript was not collected.
 
-| 開始時刻 | 章 |
+| Start | Chapter |
 | --- | --- |
-| 0:00 | はじめに |
-| 1:08 | 目的 |
-| 1:52 | 主体性 |
-| 3:38 | 責任 |
-| 6:04 | 親しみ |
-| 8:52 | 柔軟性 |
-| 11:13 | シンプルさ |
-| 13:42 | クラフト |
-| 15:47 | 喜び |
+| 0:00 | Introduction |
+| 1:08 | Purpose |
+| 1:52 | Agency |
+| 3:38 | Responsibility |
+| 6:04 | Familiarity |
+| 8:52 | Flexibility |
+| 11:13 | Simplicity |
+| 13:42 | Craft |
+| 15:47 | Delight |
 
-## 5. 取得記録と利用上の範囲
+## 5. Recorded evidence and limits
 
-| 対象 | 確認結果 | 本書への反映 |
+| Target | Recorded check | Included here |
 | --- | --- | --- |
-| 指定の日本語ページ | 表示後の本文・リンク・変更履歴を確認 | 8原則と26の詳細項目を要約 |
-| 各原則のページ内見出し | 8セクションを確認 | 第2章に統合 |
-| 指定ページの独立した子記事 | 本文に下位記事へのリンクなし | 子記事の収集件数は0 |
-| 本文からの補足動画リンク | 概要・章構成を確認 | 第4章に収録 |
-| HIGの共通ナビゲーション | カテゴリ名とリンクを確認 | 階層の説明のみ。各記事の本文は未収集 |
+| Specified Japanese page | Rendered body, links and change history | Eight principles and 26 detailed items summarized |
+| In-page principle headings | Eight sections | Section 2 |
+| Separate subordinate articles | No subordinate links in the body | Zero child articles collected |
+| Supplementary video link | Overview and chapter structure | Section 4 |
+| Common HIG navigation | Category names and links | Hierarchy explanation only; article bodies not collected |
 
-本書だけでは、各プラットフォームやコンポーネントの詳細な設計適合性は判定できない。個別仕様は該当する公式記事を参照すること。
+This summary cannot establish detailed compliance for individual platforms or components. Consult the applicable official articles for individual specifications.
