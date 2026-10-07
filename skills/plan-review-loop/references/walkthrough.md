@@ -1,11 +1,11 @@
-# 計画の説明
+# Explain the plan
 
-レビュー前に、主要な判断を利用者が説明できる形へ整理する。利用できる提示手段から、必要に応じて図・ローカルHTML・Markdownを選び、無断公開しない。
+Before review, organize major decisions so the user can explain them. Choose an available presentation format as useful: a diagram, local HTML or Markdown. Do not publish without authorization.
 
-順序は「変化を一文、全体の関係、決定カード、取り出せなかった部分」。D-01からのカードには決定、実際の代案、理由、影響、出典の節を記す。代案・理由を補作しない。単なる事実は全体説明へ、出典のない判断は未確定欄へ置く。
+Present the change in one sentence, the overall relationships, decision cards, then unresolved evidence. Cards numbered D-01 onward contain the decision, actual alternatives, rationale, impact and sources. Do not invent alternatives or reasons. Put plain facts in the overall explanation and unsupported decisions in the unresolved section.
 
-未確定欄に根拠不足、本文の食い違い、参照できた仕様からの要件漏れを挙げ、なければ明記する。図の整然さは正しさの証明ではない。
+List insufficient evidence, contradictions and requirements missing from the available specification; say when none were found. A tidy diagram does not prove correctness.
 
-提示後、用途を満たすか、重大な挙動を検証できるか、理解できない判断が残るかを尋ねる。掘り下げは出典を再読し同じ成果物へ反映する。
+After presentation, ask whether it serves the purpose, whether important behavior can be verified, and which decisions remain unclear. Revisit the source for clarification and update the same artifact.
 
-出典：`~/.claude/skills/walk-the-plan/SKILL.md` のCodex向け再構成。
+Source: adapted for Codex from `~/.claude/skills/walk-the-plan/SKILL.md`.

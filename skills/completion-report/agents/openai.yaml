@@ -1,4 +1,4 @@
 interface:
-  display_name: "完了報告と引継ぎ"
-  short_description: "変更・検証・残課題を報告し、必要なプロジェクト状態を引き継ぐ。"
-  default_prompt: "$completion-report で検証結果と必要な引継ぎを整理してください。"
+  display_name: Completion Report
+  short_description: Report actual changes, checks and remaining work
+  default_prompt: Use $completion-report to summarize the outcome and verified results.
