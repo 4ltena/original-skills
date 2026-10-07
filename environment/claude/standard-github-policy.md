@@ -8,7 +8,7 @@ Run read-only work the sandbox permits without requesting escalation: file reads
 
 ## Ordinary task work
 
-Use the active Claude permission mode. Follow any permission prompts; do not claim Codex automatic approval review is available. Within the requested task this covers staging and commits, local merges into non-main/master branches, ordinary pushes to non-main/master branches (including `backup/*`), PR and Issue creation or updates on the task's repository, network access or writes beyond the sandbox needed by the task, and any action not listed below. After a denial, take a safer alternative or report it; ask the user only when the action belongs to the next tier.
+Use the active Claude permission mode. Follow any permission prompts; do not claim Codex automatic approval review is available. Within the requested task this covers staging and commits, local merges into non-main/master branches, ordinary pushes to non-main/master branches (including `backup/*`), network access or writes beyond the sandbox needed by the task, and any action not listed below. After a denial, take a safer alternative or report it; ask the user only when the action belongs to the next tier.
 
 ## User approval
 
@@ -19,6 +19,7 @@ Ask in plain text before acting, showing the exact target and effect (host, owne
 - Release publication; repository visibility, secret, protection-rule and Actions settings changes.
 - Global Git configuration and security or approval configuration (Claude config, rules, permission modes, approval rules in AGENTS.md).
 - Local operations that lose uncommitted or unpushed work, such as `reset --hard`, `clean -fdx`, deleting branches with unmerged commits or dropping stashes.
+- PR and Issue creation or updates, unless the request names the target and operation.
 - Messages or comments addressed to other people.
 
 A request that already names the exact target and effect is the approval; do not ask twice. Never execute or submit remote deletion of repositories, releases, branches, tags, secrets or workflow runs; explain the target and leave it to the user. Runtime or managed-policy denials grant no fallback.
