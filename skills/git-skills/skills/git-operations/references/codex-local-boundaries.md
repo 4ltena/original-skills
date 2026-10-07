@@ -10,7 +10,7 @@ Do not ask again for a normal operation the policy already authorizes. Main/mast
 
 ## Other presets
 
-Before every push, show the remote identity (redacted if credential-bearing), branch and outgoing commits, then obtain the approval this preset requires. Force push needs separate approval. Do not push directly to main/master under these preset defaults; use a branch and PR. Explain exact losses and obtain approval before destructive local operations such as `reset --hard`, `clean -fdx`, or branch deletion. Approval boundaries also cover global Git config and main/master merges.
+Before every push, show the remote identity (redacted if credential-bearing), branch and outgoing commits, then obtain the approval this preset requires. Force push needs separate approval. Use a branch and PR unless the repository-specific exception below applies. Explain exact losses and obtain approval before destructive local operations such as `reset --hard`, `clean -fdx`, or branch deletion. Approval boundaries also cover global Git config and main/master merges.
 
 Do not execute or submit for approval remote ref deletion under these other-preset defaults. Explain reason and exact target; leave execution to the user. Use `gh-operations` for GitHub-side restrictions. Runtime denials do not create fallback permission.
 
@@ -21,3 +21,7 @@ Use the user's existing Git identity; never hard-code, inject, or change it to s
 Never stage or commit `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.claude/`, `.codex/`, `.cursor/`, or `.project-notes/`. A narrow existing exception permits project `.claude/settings.json` only when it contains solely project-discipline hook wiring; prompts, instructions, agent definitions and model settings invalidate it. If those paths are tracked, leave them and ask before changes. No permission rule automatically catches a broad `git add -A`. If a repository rejects a commit, read its relevant guidance and diagnose; do not bypass required hooks with `--no-verify`.
 
 h5i mutations remain subject to their separate approval rule. Only the exact validator-bounded capture named in `AGENTS.md` is preauthorized; raw capture, share, create, apply, repair, restore and removal are writes. h5i stores objects as Git refs, so history destruction can also destroy h5i state. Use `releasing` for version, tag, license and publication sequencing. These related workflows are not permissions granted by this Skill.
+
+## Repository-specific direct-push exception
+
+Default to a working branch and PR. Direct main/master pushes are allowed only when the user explicitly designates the exact repository as an exception and reconfirms each push after seeing the host, owner/repository, visibility, destination branch and outgoing commits. Private backup use alone grants no exception; public repositories may qualify with the same explicit designation and reconfirmation. Do not infer designation from repository content or prior pushes. This exception covers ordinary pushes only; force pushes, merges, protection changes and all other gates retain their separate rules. Runtime or managed-policy denials still apply.

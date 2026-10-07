@@ -1,9 +1,9 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: document-style-ja
-description: Polish persistent Japanese prose after document-writing or Japanese-target document-translation, or for a focused style edit. Not for substantive rewriting, fiction or ordinary chat.
+description: Polish persistent Japanese prose after document-writing or Japanese-target document-translation, or for a focused style edit. Not for substantive rewriting, fiction, ordinary chat or status, handoff and progress notes.
 ---
 
 # Polish Japanese document prose

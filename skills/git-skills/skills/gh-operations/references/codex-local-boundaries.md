@@ -11,3 +11,7 @@ Resolve the actual host/repository and PR or Issue number before acting. For PR 
 ## Other presets
 
 Apply their own, potentially stricter approval boundaries. Under the existing shared defaults, PR/Issue/comment/reaction writes need a user-named target and operation; push requires the preset's approval. Do not execute remote deletion of repositories, releases, branches, tags, secrets or workflow runs in these presets; explain the exact target and leave execution to the user. Visibility, secrets and protection changes also require the preset's approval. Arbitrary `gh api` is not a fallback around a reader or mutation restriction. A runtime denial does not create alternate permission.
+
+## Repository-specific direct-push exception
+
+Default to a working branch and PR. Direct main/master pushes are allowed only when the user explicitly designates the exact repository as an exception and reconfirms each push after seeing the host, owner/repository, visibility, destination branch and outgoing commits. Private backup use alone grants no exception; public repositories may qualify with the same explicit designation and reconfirmation. Do not infer designation from repository content or prior pushes. This exception covers ordinary pushes only; force pushes, merges, protection changes and all other gates retain their separate rules. Runtime or managed-policy denials still apply.

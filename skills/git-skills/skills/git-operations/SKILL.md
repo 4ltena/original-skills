@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: git-operations
 description: Carry out a requested local Git write or push, including gh repo sync without a destination repository, with scoped staging, destination checks, and recovery; not for GitHub-side writes, read-only inspection, or drafting text alone.
 ---
@@ -19,6 +19,8 @@ Before a local Git write, establish the intended repository and worktree root, c
 ## Commit only the intended content
 
 Stage exact paths or hunks. Broad staging (`git add -A`, a directory pathspec, or `git commit -a`) is appropriate only after every affected addition, modification, and deletion is confirmed in scope. Inspect status, staged file list, and staged diff before committing; exclude unrelated work, secrets, generated artifacts, and paths forbidden by the host policy. Let relevant hooks run and diagnose failures rather than bypassing them. Hooks and filters can execute code; in an untrusted repository, establish their execution source and acceptability before invoking them, or stop. Check the resulting commit ID and remaining index/worktree state before reporting success. A failed hook or “Everything up-to-date” push does not prove a commit exists. Use `git-writing` for the message when available.
+
+For user-designated direct main/master push exceptions, apply the repository-specific designation and per-push reconfirmation in [local boundaries](references/codex-local-boundaries.md).
 
 ## Publish to the intended destination
 
