@@ -1,18 +1,18 @@
 {
   "name": "goal-checkpoint",
-  "version": "0.1.0",
-  "description": "長期開発で3時間ごとにgoalと完了条件の進捗を見直すローカルCodexプラグイン",
+  "version": "0.1.2+codex.2026100702",
+  "description": "Local Codex milestone evidence checkpoints after three hours on Windows, macOS and Linux.",
   "author": {
     "name": "4ltena"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Goal Checkpoint",
-    "shortDescription": "goalとマイルストーンの進捗を3時間ごとに再評価",
-    "longDescription": "3時間経過後の対応hookイベントで再評価を促し、局所改善の繰り返しから完了条件に直結する実装へ戻します。",
+    "shortDescription": "Reassess goal progress after three hours",
+    "longDescription": "Review milestone evidence on the next supported hook event after three hours, then resume approved implementation.",
     "developerName": "4ltena",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "goal-checkpointを有効化し、現在のgoalとマイルストーンを3時間ごとに見直す"
+    "defaultPrompt": "Enable goal-checkpoint for the current goal and milestone."
   }
 }

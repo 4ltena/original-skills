@@ -7,7 +7,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 2,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }
@@ -19,7 +20,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 2,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }
@@ -31,7 +33,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 2,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }
@@ -43,7 +46,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 2,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }
@@ -55,7 +59,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 1,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }
@@ -67,7 +72,8 @@
             "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
             "timeout": 2,
-            "additionalContextLimit": 512
+            "additionalContextLimit": 512,
+            "commandWindows": "python -X utf8 -B \"%PLUGIN_ROOT%\\scripts\\checkpoint.py\" hook"
           }
         ]
       }

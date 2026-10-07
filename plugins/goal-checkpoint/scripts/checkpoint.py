@@ -3,7 +3,6 @@
 
 import argparse
 import contextlib
-import fcntl
 import hashlib
 import json
 import math
@@ -14,6 +13,9 @@ import stat
 import sys
 import time
 import uuid
+
+if os.name != "nt":
+    import fcntl
 
 INTERVAL = 10800
 MAX_STATE = 16384
@@ -59,7 +61,7 @@ def bounded_json(raw):
     return value
 
 
-class Store:
+class PosixStore:
     """All mutable files live in a private, non-symlink directory under PLUGIN_DATA."""
 
     def __init__(self, data):
@@ -184,6 +186,21 @@ class Store:
         return state
 
 
+if os.name == "nt":
+    import importlib.util
+
+    _store_spec = importlib.util.spec_from_file_location("checkpoint_windows_store", Path(__file__).with_name("windows_store.py"))
+    _store_module = importlib.util.module_from_spec(_store_spec)
+    _store_spec.loader.exec_module(_store_module)
+    WindowsStore = _store_module.WindowsStore
+
+    class Store(WindowsStore, PosixStore):
+        def __init__(self, data):
+            WindowsStore.__init__(self, data, error=StateError, bounded_json=bounded_json)
+else:
+    Store = PosixStore
+
+
 def baseline(details):
     if details.get("goal_status") != "active" or details.get("budget_exhausted") is not False:
         raise StateError("activeかつ予算未終了のgoal確認が必要です")
@@ -294,6 +311,11 @@ def operate(store, operation, session, workspace, details, now):
                 raise StateError("監視は無効です")
             if state["pending"] is None:
                 state["pending"] = {"id": uuid.uuid4().hex, "notified_at": now, "delivery": None}
+        elif operation == "baseline":
+            fresh = baseline(details)
+            if not state["active"] or details.get("generation") != state["generation"] or fresh["goal_ref"] != state["goal_ref"]:
+                raise StateError("Baseline identity does not match active monitoring")
+            state.update(fresh)
         elif operation == "ack":
             if not state["active"] or details.get("generation") != state["generation"] or not state["pending"] or details.get("checkpoint_id") != state["pending"]["id"]:
                 raise StateError("ackの監視世代・発火IDが現在のpendingと一致しません")
@@ -326,6 +348,30 @@ def run_hook(data, event, now):
     session = text(event.get("session_id"), "session_id")
     with Store(data) as store, store.lock(session):
         state = store.load(session)
+        if name == "PostToolUse" and event.get("tool_name") in {"create_goal", "functions.create_goal"}:
+            response = event.get("tool_response")
+            if isinstance(response, str):
+                response = bounded_json(response.encode())
+            goal = response.get("goal") if isinstance(response, dict) else None
+            if not isinstance(goal, dict) or goal.get("status") != "active":
+                return {"systemMessage": "goal-checkpoint: goal の作成結果を確認できません。get_goal と監視状態を確認してください"}
+            invocation = event.get("tool_use_id")
+            if not isinstance(invocation, str) or not invocation.strip():
+                return {"systemMessage": "goal-checkpoint: goal 作成イベントの識別子がありません。監視登録を確認してください"}
+            reference = "native-monitor:" + digest(text(invocation, "tool_use_id"))
+            if state is not None and state["goal_ref"] == reference:
+                return {}
+            workspace = str(Path(text(event.get("cwd"), "cwd")).resolve(strict=True))
+            if not Path(workspace).is_dir():
+                raise StateError("workspace must be a directory")
+            store.enable(session, workspace, {
+                "goal_status": "active", "budget_exhausted": False,
+                "goal_ref": reference, "milestone": "Unconfirmed: inspect the approved plan",
+                "criteria": "Unconfirmed: inspect the current native goal and approved criteria",
+                "evidence": "Monitoring registered at native goal creation; implementation baseline unconfirmed",
+            }, timestamp(now))
+            return {"hookSpecificOutput": {"hookEventName": name, "additionalContext":
+                "goal-checkpoint: 新しい goal の3時間監視を登録しました。同梱 skill で最新 goal と既存計画の baseline を確認してください。開始時刻を再設定せず、不明な項目を達成済みと扱わないでください。"}}
         if state is None:
             return {}
         output, changed = event_update(state, event, timestamp(now))
@@ -335,8 +381,11 @@ def run_hook(data, event, now):
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="goal-checkpoint local state")
-    parser.add_argument("operation", choices=("hook", "enable", "status", "review", "ack", "disable", "resume"))
+    parser.add_argument("operation", choices=("hook", "enable", "status", "review", "baseline", "ack", "disable", "resume"))
     parser.add_argument("--session", default=os.environ.get("CODEX_THREAD_ID"))
     parser.add_argument("--workspace", default=os.getcwd())
     args = parser.parse_args()
@@ -353,7 +402,7 @@ def main():
                 raise StateError("hook入力がobjectではありません")
             emit(run_hook(data, event, time.time()))
         else:
-            details = bounded_json(sys.stdin.buffer.read(MAX_STATE + 1)) if args.operation in {"enable", "resume", "ack", "disable"} else {}
+            details = bounded_json(sys.stdin.buffer.read(MAX_STATE + 1)) if args.operation in {"enable", "resume", "baseline", "ack", "disable"} else {}
             with Store(data) as store:
                 result = operate(store, args.operation, args.session, args.workspace, details, time.time())
             print(json.dumps(result, ensure_ascii=False, allow_nan=False))
