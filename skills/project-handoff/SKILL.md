@@ -3,7 +3,7 @@ name: project-handoff
 description: Resume project work from existing state or persist a requested handoff after meaningful project work.
 metadata:
   author: 4ltena
-  version: '1.1'
+  version: '1.2'
 ---
 
 # Project handoff
@@ -16,4 +16,4 @@ When updating a handoff, record the active deliverable, verified results, blocke
 
 Keep the state document a current snapshot, not a log. Overwrite its fixed sections (current state, active deliverable and next task, blockers and decisions, latest verification, links) instead of adding dated progress entries. Keep it within about 150 lines or 12 KB. Before writing, if it exceeds that budget or holds several dated progress entries, summarize it: keep only facts that still affect upcoming work, move superseded history unchanged to an `archive/` file beside it named by date, and link the archive once. Archives are not read by default.
 
-Update the handoff when a user turn's work completes, on request, or before exit or expected compaction; not after each worker result, commit or intermediate check. Persist project facts, not conversation transcripts or secrets. Mark unrun checks and unknown runtime behavior explicitly. Skip persistence for disposable work or configuration changes with no ongoing project state. Updating the handoff does not recursively trigger another handoff, commit, publication or Japanese style pass.
+Update the handoff when a user turn's work completes, on request, or before exit or expected compaction; not after each worker result, commit or intermediate check. An autonomous continuation turn (goal or loop) is not a user turn: update at a milestone change, a new blocker or a stop. Persist project facts, not conversation transcripts or secrets. Mark unrun checks and unknown runtime behavior explicitly. Skip persistence for disposable work or configuration changes with no ongoing project state. Updating the handoff does not recursively trigger another handoff, commit, publication or Japanese style pass.

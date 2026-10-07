@@ -3,7 +3,7 @@ name: spec-first-development
 description: Specify and obtain approval for substantial implementation or a new project; resume approved work without repeating planning.
 metadata:
   author: "4ltena"
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Specification first
@@ -15,5 +15,7 @@ Record purpose, exclusions, constraints, acceptance criteria and unresolved cons
 Use an available independent read-only reviewer for a substantive specification; report when independent review is unavailable. Use plan-review-loop for a substantial plan explanation/review when needed, and ux-spike only for unsettled UI direction. Resolve supported blocking findings and obtain specification approval before implementation. Existing decisions remain approved unless scope, assumptions or acceptance materially change.
 
 Execute the approved milestones through available workflow guidance. Independent bundles require non-overlapping ownership, satisfied dependencies and bounded requirements/checks; otherwise work sequentially. The root integrates and verifies each dependent gate. Require available independent change review at final or high-risk gates, resolve confirmed blockers and report unmet gates honestly.
+
+Keep the specification proportional to the change. When a correction follows a correction, or the specification and its errata grow faster than the product change, stop and ask the user to re-scope instead of writing another erratum. A gate that the available environment cannot satisfy, or that depends on a user action, needs a user decision on an alternative or deferral, not repeated probing.
 
 Use task-relay only for long sequential plans that benefit from saved context. Preserve applicable handoff, reporting and publication rules; this skill grants no permission to commit, push, publish or bypass a denial. An approved plan must not recursively restart this procedure.

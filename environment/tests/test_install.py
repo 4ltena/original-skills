@@ -67,7 +67,7 @@ class InstallTests(unittest.TestCase):
                 auto_delete='yes', checkpoint='enabled'), self.home)
             # The only external process is the explicit Python probe; no agent CLI.
             self.assertTrue(all(Path(call.args[0][0]).resolve() == Path(sys.executable).resolve() for call in run.call_args_list))
-        self.assertEqual(len(result['selected_skills']), 46)
+        self.assertEqual(len(result['selected_skills']), 44)
         self.assertIn(str(folder), result['preserved'])
         self.assertFalse((self.home / '.claude/settings.json').exists())
         applied = install.apply(result, result['plan_id'])

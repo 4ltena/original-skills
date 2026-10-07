@@ -6,7 +6,7 @@ configuration changes. CLI-free preparation uses Python 3.10+ and no dependencie
 
 - [questions.json](questions.json): predefined questions and conditional choices.
 - [install.py](install.py): next question, dry-run plan and reviewed-plan application.
-- [HOSTS.md](HOSTS.md): all 46 Skill entrypoints and Claude adaptations.
+- [HOSTS.md](HOSTS.md): all 44 Skill entrypoints and Claude adaptations.
 - [skill-compatibility.json](skill-compatibility.json): maintained classification/fixture map.
 - [profiles/manual-git.md](profiles/manual-git.md): explicit-request Git operation mode.
 - [codex](codex): optional Codex sandbox/policy templates and configuration merger.

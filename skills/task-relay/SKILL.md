@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: task-relay
 description: "Execute a long approved numbered plan across fresh contexts when saved context outweighs rediscovery cost."
 ---
@@ -29,4 +29,4 @@ For each task, in the target repository:
 3. Check its box only after success; append durable facts needed downstream, not a transcript. Leave a blocked task unchecked with its reason and next action.
 4. Commit only if the executor is authorized, following `git-operations`; no empty commits. Otherwise retain verified uncommitted paths. Push/PR/merge belong to explicitly approved integration.
 
-At a task boundary, use a fresh context only when it saves more than reconstructing the plan and current state. Otherwise continue the approved plan in the current context; a completed checkbox alone is not a reason to stop the user's work. Do not create user-owned conversations without explicit request. Keep one writer for a shared tree and wait for an executor's result before the next writes there. When all boxes are checked, use available `project-handoff` for persistence and available `completion-report` for reporting; integration still requires approval.
+At a task boundary, use a fresh context only when it saves more than reconstructing the plan and current state. Otherwise continue the approved plan in the current context; a completed checkbox alone is not a reason to stop the user's work. Do not create user-owned conversations without explicit request. Keep one writer for a shared tree and wait for an executor's result before the next writes there. When all boxes are checked, use available `project-handoff` for persistence and report as the workflow skill describes; integration still requires approval.

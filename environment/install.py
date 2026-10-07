@@ -18,7 +18,7 @@ from runtime import probe, python_command, safe_path
 ENV = Path(__file__).resolve().parent
 REPO = ENV.parent
 PLUGIN_NAMES = {"workflow", "growth-loop", "goal-checkpoint"}
-BASIC = {"workflow", "smallest-change", "spec-first-development", "project-handoff", "completion-report"}
+BASIC = {"workflow", "smallest-change", "spec-first-development", "project-handoff"}
 DOCUMENTS = {"document-writing", "document-rewriting", "document-authoring", "document-sources",
              "document-style-ja", "document-files", "document-translation", "japanese-writing-refine"}
 
@@ -102,7 +102,7 @@ def skill_selection(answers, available):
         base = (REPO / "skills/growth-loop/growth-loop/skills") if name == "growth-loop" else REPO / "plugins" / name / "skills"
         selected |= {p.parent.name for p in base.glob("*/SKILL.md")}
     # Procedures that require a companion Skill bring it into the review plan explicitly.
-    dependencies = {"workflow": {"spec-first-development", "project-handoff", "completion-report"},
+    dependencies = {"workflow": {"spec-first-development", "project-handoff"},
         "spec-first-development": {"plan-review-loop"}, "git-operations": {"git-read-inspection", "git-writing"},
         "gh-operations": {"gh-read-inspection"}, "h5i-capture-read": {"h5i-read-inspection"},
         "releasing": {"git-operations", "gh-operations"}, "document-translation": {"document-style-ja"}}

@@ -25,12 +25,6 @@
       "entrypoint": "conversation Skill: code-inspection; bundled references/scripts and available host tools",
       "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
     },
-    "completion-report": {
-      "classification": "portable",
-      "source": "skills/completion-report",
-      "entrypoint": "conversation Skill: completion-report; bundled references/scripts and available host tools",
-      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
-    },
     "design-generation": {
       "classification": "portable",
       "source": "plugins/workflow/skills/design-generation",
@@ -77,12 +71,6 @@
       "classification": "portable",
       "source": "skills/document-skills/skills/document-writing",
       "entrypoint": "conversation Skill: document-writing; bundled references/scripts and available host tools",
-      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
-    },
-    "finish-line": {
-      "classification": "portable",
-      "source": "skills/finish-line",
-      "entrypoint": "conversation Skill: finish-line; bundled references/scripts and available host tools",
       "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
     },
     "forget": {

@@ -1,4 +1,0 @@
-interface:
-  display_name: Completion Report
-  short_description: Report actual changes, checks and remaining work
-  default_prompt: Use $completion-report to summarize the outcome and verified results.

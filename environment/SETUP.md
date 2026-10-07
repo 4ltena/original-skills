@@ -114,7 +114,7 @@ keeping conflicting automatic hooks/rules active.
 
 Placement and preparation are complete independently of CLI availability. Invoke
 installed Skills from the actual host catalog or read their SKILL.md in conversation.
-[HOSTS.md](HOSTS.md) lists all 46 entrypoints and adapters. Do not claim plugin or
+[HOSTS.md](HOSTS.md) lists all 44 entrypoints and adapters. Do not claim plugin or
 hook activation from a file copy. Use the selected host's supported source/plugin
 registration and trust UI only when available and within the approved plan. Claude
 settings hooks can use the prepared runtime directly; do not also register the same

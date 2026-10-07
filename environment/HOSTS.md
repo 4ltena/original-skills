@@ -1,6 +1,6 @@
 # Claude / Codex Skill entrypoints
 
-This inventory covers all 46 unique source Skill names. System Skills and plugin caches
+This inventory covers all 44 unique source Skill names. System Skills and plugin caches
 are outside this repository. Installation does not prove live tool/hook availability.
 
 Read the installed host-policy.md and binding.json. Use the current host catalog to
@@ -29,7 +29,6 @@ and --client paths; unavailable broker actions are reported, never fabricated.
 | agentic-development-audit | portable | conversation Skill: agentic-development-audit; bundled references/scripts and available host tools |
 | apple-design-principles | portable | conversation Skill: apple-design-principles; bundled references/scripts and available host tools |
 | code-inspection | portable | conversation Skill: code-inspection; bundled references/scripts and available host tools |
-| completion-report | portable | conversation Skill: completion-report; bundled references/scripts and available host tools |
 | design-generation | portable | conversation Skill: design-generation; bundled references/scripts and available host tools |
 | document-authoring | portable | conversation Skill: document-authoring; bundled references/scripts and available host tools |
 | document-files | portable | conversation Skill: document-files; bundled references/scripts and available host tools |
@@ -38,7 +37,6 @@ and --client paths; unavailable broker actions are reported, never fabricated.
 | document-style-ja | portable | conversation Skill: document-style-ja; bundled references/scripts and available host tools |
 | document-translation | portable | conversation Skill: document-translation; bundled references/scripts and available host tools |
 | document-writing | portable | conversation Skill: document-writing; bundled references/scripts and available host tools |
-| finish-line | portable | conversation Skill: finish-line; bundled references/scripts and available host tools |
 | forget | adapted | verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes |
 | frontend-design | portable | conversation Skill: frontend-design; bundled references/scripts and available host tools |
 | frontend-optimize-apple | portable | conversation Skill: frontend-optimize-apple; bundled references/scripts and available host tools |
