@@ -104,7 +104,7 @@ def skill_selection(answers, available):
     # Procedures that require a companion Skill bring it into the review plan explicitly.
     dependencies = {"workflow": {"spec-first-development", "project-handoff"},
         "spec-first-development": {"plan-review-loop"}, "git-operations": {"git-read-inspection", "git-writing"},
-        "gh-operations": {"gh-read-inspection"}, "h5i-capture-read": {"h5i-read-inspection"},
+        "gh-operations": {"gh-read-inspection"},
         "releasing": {"git-operations", "gh-operations"}, "document-translation": {"document-style-ja"}}
     required = selected.copy()
     while True:

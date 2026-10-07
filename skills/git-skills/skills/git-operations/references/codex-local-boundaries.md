@@ -32,7 +32,7 @@ Use the user's existing Git identity; never hard-code, inject, or change it to s
 
 Never stage or commit `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.claude/`, `.codex/`, `.cursor/`, or `.project-notes/`. A narrow existing exception permits project `.claude/settings.json` only when it contains solely project-discipline hook wiring; prompts, instructions, agent definitions and model settings invalidate it. If those paths are tracked, leave them and ask before changes. No permission rule automatically catches a broad `git add -A`. If a repository rejects a commit, read its relevant guidance and diagnose; do not bypass required hooks with `--no-verify`.
 
-h5i mutations remain subject to their separate approval rule. Only the exact validator-bounded capture named in `AGENTS.md` is preauthorized; raw capture, share, create, apply, repair, restore and removal are writes. h5i stores objects as Git refs, so history destruction can also destroy h5i state. Use `releasing` for version, tag, license and publication sequencing. These related workflows are not permissions granted by this Skill.
+h5i mutations remain subject to their separate approval rule. Raw capture, share, create, apply, repair, restore and removal are writes. h5i stores objects as Git refs, so history destruction can also destroy h5i state. Use `releasing` for version, tag, license and publication sequencing. These related workflows are not permissions granted by this Skill.
 
 ## Repository-specific direct-push exception
 
