@@ -1,0 +1,76 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 2,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 2,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 2,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 2,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 1,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/checkpoint.py\" hook",
+            "timeout": 2,
+            "additionalContextLimit": 512
+          }
+        ]
+      }
+    ]
+  }
+}
