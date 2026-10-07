@@ -2,8 +2,11 @@
 
 Personal skills and plugin sources.
 
+To set up Codex and Claude Code from this repository on a new machine, start with [environment/README.md](environment/README.md).
+
 | Component | Location |
 | --- | --- |
+| Agent environment (instructions, permissions, setup) | [environment](environment) |
 | Workflow skill | [skills/workflow](skills/workflow) |
 | Workflow plugin | [plugins/workflow](plugins/workflow) |
 | Goal checkpoint plugin | [plugins/goal-checkpoint](plugins/goal-checkpoint) |

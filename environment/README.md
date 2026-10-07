@@ -19,8 +19,10 @@ Shared global instructions and permission settings for Codex and Claude Code, wi
 | [codex/standard-github-policy.md](codex/standard-github-policy.md) | `~/.codex/standard-github-policy.md`, the tier definitions |
 | [codex/host-read-policy.md](codex/host-read-policy.md) | `~/.codex/host-read-policy.md`, Git/GitHub read validators per OS (template) |
 | [codex/local-policy.example.md](codex/local-policy.example.md) | `~/.codex/local-policy.md`, language and personal exceptions (template) |
+| [codex/marketplace.example.json](codex/marketplace.example.json) | `~/.agents/plugins/marketplace.json` (Codex plugin registry) |
 | [codex/config.standard.toml](codex/config.standard.toml) | merged into `~/.codex/config.toml` by [codex/apply_config.py](codex/apply_config.py) |
 | [claude/CLAUDE.md](claude/CLAUDE.md) | `~/.claude/CLAUDE.md` |
-| [claude/settings.permissions.json](claude/settings.permissions.json) | merged into `~/.claude/settings.json` |
+| [claude/settings.template.json](claude/settings.template.json) | merged into `~/.claude/settings.json` (permissions, hook, plugins) |
+| [claude/hooks/git-push-guard.sh](claude/hooks/git-push-guard.sh) | `~/.claude/hooks/git-push-guard.sh` |
 
 Skills come from [../skills](../skills) and plugins from [../plugins](../plugins); SETUP.md installs both.

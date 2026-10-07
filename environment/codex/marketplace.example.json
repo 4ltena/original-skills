@@ -1,0 +1,32 @@
+{
+  "name": "personal",
+  "interface": {
+    "displayName": "Personal"
+  },
+  "plugins": [
+    {
+      "name": "workflow",
+      "source": {
+        "source": "local",
+        "path": "./.codex/plugins/workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "goal-checkpoint",
+      "source": {
+        "source": "local",
+        "path": "./.codex/plugins/goal-checkpoint"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
