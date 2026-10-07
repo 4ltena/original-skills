@@ -24,7 +24,7 @@ class CheckpointTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.data = self.root / "plugin data"
         self.data.mkdir()
-        self.workspace = self.root / "work space"
+        self.workspace = self.root / "work space 日本語"
         self.workspace.mkdir()
         (self.workspace / "child").mkdir()
         self.details = dict(goal_ref="goal:one", goal_status="active", budget_exhausted=False,
@@ -63,6 +63,58 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(self.event(now=21799, turn_id="turn-2"), {})
         self.assertIn("hookSpecificOutput", self.event(now=21800, turn_id="turn-2"))
         self.assertEqual(self.ack(now=22000)["stalled_count"], 2)
+
+    def test_goal_creation_auto_registers_once_without_goal_text(self):
+        secret = "private goal text must not be saved"
+        event = dict(hook_event_name="PostToolUse", session_id="chat-a", cwd=str(self.workspace),
+                     turn_id="create-turn", tool_name="create_goal", tool_use_id="goal-call-1",
+                     tool_response={"goal":{"status":"active","objective":secret}})
+        notice = cp.run_hook(self.data,event,500)
+        state = self.op("status")
+        self.assertEqual(state["due_at"],11300)
+        self.assertNotIn(secret,json.dumps(state))
+        self.assertNotIn(secret,json.dumps(notice))
+        self.assertEqual(cp.run_hook(self.data,event,1000),{})
+        self.assertEqual(self.op("status")["due_at"],11300)
+        self.assertEqual(self.event(now=11299),{})
+        self.assertIn("hookSpecificOutput",self.event(now=11300))
+        event["tool_use_id"]="goal-call-2"
+        cp.run_hook(self.data,event,20000)
+        self.assertEqual(self.op("status")["due_at"],30800)
+        self.assertNotEqual(self.op("status")["generation"],state["generation"])
+
+    def test_failed_or_ambiguous_goal_does_not_enable(self):
+        self.op("disable",reason="user stopped")
+        for response in ({"error":"failed"},{"goal":{"status":"complete"}},None):
+            out=cp.run_hook(self.data,dict(hook_event_name="PostToolUse",session_id="chat-a",
+                cwd=str(self.workspace),tool_name="create_goal",tool_use_id="call",tool_response=response),500)
+            self.assertIn("systemMessage",out)
+            self.assertFalse(self.op("status")["active"])
+
+    def test_auto_registers_new_session_and_preserves_explicit_disable(self):
+        event=dict(hook_event_name="PostToolUse",session_id="new-chat",cwd=str(self.workspace),
+                   tool_name="functions.create_goal",tool_use_id="new-call",
+                   tool_response=json.dumps({"goal":{"status":"active"}}))
+        self.assertIn("hookSpecificOutput",cp.run_hook(self.data,event,500))
+        self.assertTrue(self.op("status",session="new-chat")["active"])
+        self.op("disable",session="new-chat",reason="user stopped")
+        self.assertEqual(cp.run_hook(self.data,event,600),{})
+        self.assertFalse(self.op("status",session="new-chat")["active"])
+        event["session_id"]="missing-call-id"
+        event.pop("tool_use_id")
+        self.assertIn("systemMessage",cp.run_hook(self.data,event,700))
+        self.assertFalse(self.op("status",session="missing-call-id")["registered"])
+
+    def test_baseline_preserves_deadline_and_rejects_stale_identity(self):
+        before=self.op("status")
+        after=self.op("baseline",now=200,generation=before["generation"],evidence="baseline verified")
+        self.assertEqual(after["due_at"],before["due_at"])
+        self.assertEqual(after["baseline_at"],before["baseline_at"])
+        self.assertEqual(after["evidence"],"baseline verified")
+        with self.assertRaises(cp.StateError):
+            self.op("baseline",generation="0"*32)
+        with self.assertRaises(cp.StateError):
+            self.op("baseline",generation=before["generation"],goal_ref="another goal")
 
     def test_long_idle_only_one_pending(self):
         self.event(now=5 * 86400)
@@ -164,6 +216,8 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(self.op("status")["generation"], fresh["generation"])
 
     def test_symlink_and_private_permissions(self):
+        if os.name == "nt":
+            self.skipTest("Windows reparse/ACL checks have dedicated backend tests")
         path = self.state_path()
         target = self.root / "untouched"
         target.write_text("sentinel")
@@ -211,7 +265,7 @@ class CheckpointTests(unittest.TestCase):
     def cli(self, operation, payload=None, **env):
         environment = {**os.environ, "PLUGIN_DATA": str(self.data), "CODEX_THREAD_ID": "chat-a", **env}
         return subprocess.run([sys.executable, "-B", str(SCRIPT), operation], input=json.dumps(payload) if payload is not None else "",
-                              text=True, capture_output=True, env=environment, cwd=self.workspace, timeout=2)
+                              text=True, encoding="utf-8", capture_output=True, env=environment, cwd=self.workspace, timeout=2)
 
     def test_cli_enable_review_ack_and_disable(self):
         enabled = self.cli("enable", self.details)
@@ -249,14 +303,15 @@ class CheckpointTests(unittest.TestCase):
             self.assertEqual(json.loads(result.stdout), {})
 
     def test_contract_in_path_with_spaces(self):
-        spaced = self.root / "installed plugin"
+        spaced = self.root / "installed plugin 日本語"
         shutil.copytree(SCRIPT.parent.parent, spaced)
         environment = {**os.environ, "PLUGIN_ROOT": str(spaced), "PLUGIN_DATA": str(self.data)}
         config = json.loads((spaced / "hooks/hooks.json").read_text())["hooks"]
         for name in ("SessionStart", "UserPromptSubmit", "PostToolUse", "Stop", "Interrupt", "SessionEnd"):
             handler = config[name][0]["hooks"][0]
             event = dict(hook_event_name=name, session_id="chat-a", cwd=str(self.workspace), turn_id="t", source="startup")
-            result = subprocess.run(handler["command"], shell=True, input=json.dumps(event), text=True, capture_output=True,
+            command = handler["commandWindows"] if os.name == "nt" else handler["command"]
+            result = subprocess.run(command, shell=True, input=json.dumps(event), text=True, encoding="utf-8", capture_output=True,
                                     env=environment, timeout=handler["timeout"])
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIsInstance(json.loads(result.stdout), dict)
