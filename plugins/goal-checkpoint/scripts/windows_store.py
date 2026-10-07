@@ -206,5 +206,3 @@ class WindowsStore:
             checked(move(str(temporary),str(self._path(name)),9))
         finally:
             temporary.unlink(missing_ok=True)
-
-
