@@ -6,6 +6,7 @@ Personal skills and plugin sources.
 | --- | --- |
 | Workflow skill | [skills/workflow](skills/workflow) |
 | Workflow plugin | [plugins/workflow](plugins/workflow) |
+| Goal checkpoint plugin | [plugins/goal-checkpoint](plugins/goal-checkpoint) |
 | Code inspection | [skills/code-inspection](skills/code-inspection) |
 | Read evidence | [skills/read-evidence](skills/read-evidence) |
 | Project handoff | [skills/project-handoff](skills/project-handoff) |

@@ -1,0 +1,18 @@
+{
+  "name": "goal-checkpoint",
+  "version": "0.1.0",
+  "description": "長期開発で3時間ごとにgoalと完了条件の進捗を見直すローカルCodexプラグイン",
+  "author": {
+    "name": "4ltena"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Goal Checkpoint",
+    "shortDescription": "goalとマイルストーンの進捗を3時間ごとに再評価",
+    "longDescription": "3時間経過後の対応hookイベントで再評価を促し、局所改善の繰り返しから完了条件に直結する実装へ戻します。",
+    "developerName": "4ltena",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "goal-checkpointを有効化し、現在のgoalとマイルストーンを3時間ごとに見直す"
+  }
+}

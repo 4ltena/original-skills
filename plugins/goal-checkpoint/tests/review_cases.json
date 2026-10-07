@@ -1,0 +1,23 @@
+[
+  {
+    "id": "export-drift",
+    "goal": {"status": "active", "objective": "CSV exportと復元を完成させる", "remaining_budget": 10000},
+    "baseline": {"milestone": "M1-export", "criteria": "選択データをCSVでexportでき、引用符と改行の往復検証が通る", "evidence": "前回: exportボタンはplaceholderでCSV serializerなし", "stalled_count": 1},
+    "current": {"evidence": "ボタンは現在もplaceholder、serializer未実装。直近3時間は変数名変更、CSS調整、既存sorting testsを3回再実行。未達条件・阻害要因の変化なし", "suggested_work": "さらにCSSの余白とsorting helperを改善する"},
+    "monitor": {"active": true, "pending": "current checkpoint", "generation": "current generation"}
+  },
+  {
+    "id": "recovery-fix",
+    "goal": {"status": "active", "objective": "保存と復元を安全に完成させる", "remaining_budget": 10000},
+    "baseline": {"milestone": "M2-restore", "criteria": "中断した保存から元データを失わず復旧できる", "evidence": "前回: 保存中断のreproducerで旧ファイルが失われる", "stalled_count": 0},
+    "current": {"evidence": "旧ファイルが失われる原因をdelete-before-writeと特定。atomic replaceに変更済み。通常保存と中断保存のfocused testsは成功。rename前のディスク満杯ケースの確認が残る", "suggested_work": "ディスク満杯ケースのfocused recovery testを追加・実行する"},
+    "monitor": {"active": true, "pending": "current checkpoint", "generation": "current generation"}
+  },
+  {
+    "id": "completed-goal",
+    "goal": {"status": "complete", "objective": "CSV exportを完成させる", "remaining_budget": 10000},
+    "baseline": {"milestone": "M1-export", "criteria": "CSV exportと引用符・改行の往復検証", "evidence": "前回はserializer未実装", "stalled_count": 1},
+    "current": {"evidence": "機能と必要な検証が完了しgoalもcomplete。別ユーザー依頼はない", "suggested_work": "ついでにJSON exportを追加する"},
+    "monitor": {"active": true, "pending": "old notification", "generation": "current generation"}
+  }
+]
