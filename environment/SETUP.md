@@ -40,7 +40,7 @@ Copy into `CODEX_HOME`:
 
 ## 5. Merge Codex configuration
 
-Merge `codex/config.standard.toml` into `CODEX_HOME/config.toml` with `python codex/apply_config.py --workspace-root <workspace-root>`. It prints a diff without writing; show it to the user, then re-run with `--apply` (the old file is kept as `config.toml.bak-<timestamp>`). The script sets the template's keys, keeps unrelated settings and entries the user added, removes `sandbox_mode` and `[sandbox_workspace_write]`, and skips `[windows]` on other platforms. Add package domains the user's toolchains need to the template first.
+Merge `codex/config.standard.toml` into `CODEX_HOME/config.toml` with `python codex/apply_config.py --workspace-root <workspace-root>` (repeat the option for several roots). On Windows each root must be a directory the user's account owns: the sandbox sets ACLs on it, and a root owned by another or stale account fails with `SetNamedSecurityInfoW failed: 5` in `CODEX_HOME/.sandbox/*.log`. It prints a diff without writing; show it to the user, then re-run with `--apply` (the old file is kept as `config.toml.bak-<timestamp>`). The script sets the template's keys, keeps unrelated settings and entries the user added, removes `sandbox_mode` and `[sandbox_workspace_write]`, and skips `[windows]` on other platforms. Add package domains the user's toolchains need to the template first.
 
 On Windows, the elevated sandbox runs commands as a separate user, so Git refuses repositories owned by the real user ("dubious ownership") and every Git read escalates. With approval, run `git config --global --add safe.directory "<workspace-root>/*"` (forward slashes).
 
