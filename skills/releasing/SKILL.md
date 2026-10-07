@@ -8,7 +8,7 @@ description: "Manage licenses, versions and releases, including building and ver
 
 # Releases
 
-For Codex standard, `/home/altena/.codex/standard-github-policy.md` overrides the legacy push and merge approval rules below. All PR merges and release publication require individual approval; ordinary commits on non-main/master branches, pushes to non-main/master destination branches, and local merges into non-main/master branches do not. Keep the other release requirements.
+For Codex standard, `~/.codex/standard-github-policy.md` overrides the legacy push and merge approval rules below. All PR merges and release publication require individual approval; ordinary commits on non-main/master branches, pushes to non-main/master destination branches, and local merges into non-main/master branches do not. Keep the other release requirements.
 
 For desktop packaging or download tables, read [desktop artifacts](references/desktop-assets.md), and apply the release decisions below only when relevant. Packaging alone does not authorize tags or publication.
 

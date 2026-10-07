@@ -1,0 +1,44 @@
+# Merge into $CODEX_HOME/config.toml (default ~/.codex/config.toml).
+# Replace <workspace-root> with the directory that holds your repositories.
+# Remove any `sandbox_mode` / `[sandbox_workspace_write]` entries: they cannot be combined with
+# `default_permissions`. Permission profiles are a Codex beta feature; recheck after upgrades.
+
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+default_permissions = "standard"
+
+[features]
+network_proxy = true
+
+[permissions.standard]
+description = "Workspace access with package and GitHub network access and automatic approval review"
+extends = ":workspace"
+
+[permissions.standard.workspace_roots]
+'<workspace-root>' = true
+
+[permissions.standard.filesystem]
+"~/.cargo" = "write"
+"~/.ssh" = "deny"
+
+[permissions.standard.network]
+enabled = true
+
+[permissions.standard.network.domains]
+"github.com" = "allow"
+"api.github.com" = "allow"
+"codeload.github.com" = "allow"
+"objects.githubusercontent.com" = "allow"
+"raw.githubusercontent.com" = "allow"
+"cli.github.com" = "allow"
+"crates.io" = "allow"
+"index.crates.io" = "allow"
+"static.crates.io" = "allow"
+"static.rust-lang.org" = "allow"
+"pypi.org" = "allow"
+"files.pythonhosted.org" = "allow"
+"registry.npmjs.org" = "allow"
+
+# Windows only: run sandboxed commands as a dedicated user.
+[windows]
+sandbox = "elevated"
