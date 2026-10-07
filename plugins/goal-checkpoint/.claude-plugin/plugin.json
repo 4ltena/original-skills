@@ -1,0 +1,8 @@
+{
+  "name": "goal-checkpoint",
+  "version": "0.2.0",
+  "description": "Claude/Codex milestone reassessment after three hours at the next supported session event.",
+  "author": {
+    "name": "4ltena"
+  }
+}

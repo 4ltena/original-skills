@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "host",
+      "prompt": "利用する環境を選んでください。",
+      "options": [
+        "claude",
+        "codex",
+        "both"
+      ]
+    },
+    {
+      "id": "surface",
+      "prompt": "Claudeを使う画面を選んでください。chatではhookを有効化せず手動操作を使います。",
+      "options": [
+        "cli",
+        "desktop",
+        "ide",
+        "chat"
+      ],
+      "when": {
+        "host": [
+          "claude",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "scope",
+      "prompt": "導入範囲を選んでください。projectの場合はproject_pathも指定してください。",
+      "options": [
+        "user",
+        "project"
+      ]
+    },
+    {
+      "id": "skills",
+      "prompt": "Skillを選んでください。customの場合はskill_namesを指定してください。",
+      "options": [
+        "basic",
+        "development",
+        "documents",
+        "all",
+        "custom"
+      ]
+    },
+    {
+      "id": "plugins",
+      "prompt": "workflow / growth-loop / goal-checkpointから使うpluginを選んでください。不要なら空配列。",
+      "type": "multi",
+      "options": [
+        "workflow",
+        "growth-loop",
+        "goal-checkpoint"
+      ]
+    },
+    {
+      "id": "git_mode",
+      "prompt": "Git操作を明示依頼時だけ行いますか、自動運用にしますか。",
+      "options": [
+        "manual-git",
+        "automatic"
+      ],
+      "recommended": "manual-git"
+    },
+    {
+      "id": "growth_root",
+      "prompt": "表示された生成先Skillディレクトリを使いますか。変更する場合は導入先・scopeの質問へ戻ってください。新規ディレクトリは確認済みplanの適用時に作成します。",
+      "options": [
+        "selected-skills"
+      ],
+      "when": {
+        "plugins": "growth-loop"
+      }
+    },
+    {
+      "id": "auto_delete",
+      "prompt": "growth-loopが生成し所有証拠を確認できたSkillの自動削除を許可しますか。",
+      "options": [
+        "yes",
+        "no"
+      ],
+      "when": {
+        "plugins": "growth-loop"
+      }
+    },
+    {
+      "id": "checkpoint",
+      "prompt": "3h監視を使いますか。期限後の次イベントで通知され、無操作中の定時実行ではありません。",
+      "options": [
+        "enabled",
+        "manual"
+      ],
+      "when": {
+        "plugins": "goal-checkpoint"
+      }
+    },
+    {
+      "id": "settings",
+      "prompt": "設定変更の範囲を選んでください。既存Skillは保持します。",
+      "options": [
+        "skills-only",
+        "candidates",
+        "apply-selected"
+      ]
+    }
+  ]
+}

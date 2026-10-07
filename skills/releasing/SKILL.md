@@ -8,6 +8,10 @@ description: "Manage licenses, versions and releases, including building and ver
 
 # Releases
 
+On Claude, use its active host policy and actual permission prompts, not Codex
+settings or tools. Honor manual-git when selected. Local packaging/checks remain
+portable commands; approval-gated publication requires an explicit user request.
+
 For Codex standard, `~/.codex/standard-github-policy.md` overrides the legacy push and merge approval rules below. All PR merges and release publication require individual approval; ordinary commits on non-main/master branches, pushes to non-main/master destination branches, and local merges into non-main/master branches do not. Keep the other release requirements.
 
 For desktop packaging or download tables, read [desktop artifacts](references/desktop-assets.md), and apply the release decisions below only when relevant. Packaging alone does not authorize tags or publication.

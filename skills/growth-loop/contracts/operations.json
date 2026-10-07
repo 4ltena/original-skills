@@ -1,8 +1,16 @@
 {
   "operations": {
     "learn": {
-      "invokers": ["user", "model"],
-      "accepts_evidence": ["real_work", "recurrence", "procedural_value", "candidate_promotion"],
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "real_work",
+        "recurrence",
+        "procedural_value",
+        "candidate_promotion"
+      ],
       "forbidden": [
         "overwrite_existing_skill",
         "write_without_dead_end",
@@ -10,11 +18,18 @@
         "assume_the_write_path",
         "paste_skill_body_in_report"
       ],
-      "writes": ["skill"]
+      "writes": [
+        "skill"
+      ]
     },
     "jot": {
-      "invokers": ["user", "model"],
-      "accepts_evidence": ["mid_session_insight"],
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "mid_session_insight"
+      ],
       "forbidden": [
         "write_full_skill",
         "block_on_confirmation",
@@ -22,17 +37,37 @@
         "overwrite_the_queue",
         "assume_the_write_path"
       ],
-      "writes": ["candidate"]
+      "writes": [
+        "candidate"
+      ]
     },
     "refine": {
-      "invokers": ["user", "model"],
-      "accepts_evidence": ["session_failure", "session_overlap", "review_overlap", "review_merge"],
-      "forbidden": ["hedge_a_wrong_step", "delete_a_skill"],
-      "writes": ["skill"]
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "session_failure",
+        "session_overlap",
+        "review_overlap",
+        "review_merge"
+      ],
+      "forbidden": [
+        "hedge_a_wrong_step",
+        "delete_directly"
+      ],
+      "writes": [
+        "skill"
+      ]
     },
     "recall": {
-      "invokers": ["user", "model"],
-      "accepts_evidence": ["user_reference_to_past_work"],
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "user_reference_to_past_work"
+      ],
       "forbidden": [
         "dump_raw_output",
         "report_no_history_without_checking_roots",
@@ -41,8 +76,15 @@
       "writes": []
     },
     "profile": {
-      "invokers": ["user", "model"],
-      "accepts_evidence": ["second_occurrence", "person_fact", "supersession"],
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "second_occurrence",
+        "person_fact",
+        "supersession"
+      ],
       "forbidden": [
         "persist_dishonesty",
         "remove_a_line",
@@ -52,40 +94,126 @@
         "record_prohibited_or_inferred_traits",
         "write_a_vague_placeholder"
       ],
-      "writes": ["profile"]
+      "writes": [
+        "profile"
+      ]
     },
     "journey": {
-      "invokers": ["user"],
-      "accepts_evidence": ["deliberate_review"],
-      "forbidden": ["delete_directly", "leave_a_verdict_undecided", "restate_the_raw_listing"],
-      "writes": []
+      "invokers": [
+        "user"
+      ],
+      "accepts_evidence": [
+        "deliberate_review"
+      ],
+      "forbidden": [
+        "delete_directly",
+        "leave_a_verdict_undecided",
+        "restate_the_raw_listing"
+      ],
+      "writes": [
+        "owned_deletion"
+      ]
     },
     "forget": {
-      "invokers": ["user"],
-      "accepts_evidence": ["explicit_user_request"],
+      "invokers": [
+        "user",
+        "model"
+      ],
+      "accepts_evidence": [
+        "explicit_user_request",
+        "owned_obsolete",
+        "owned_verified_merge"
+      ],
       "forbidden": [
         "reconstruct_the_target_path",
         "pick_among_ambiguous_matches",
-        "delete_without_showing",
-        "proceed_on_implied_consent",
         "soften_a_deletion",
-        "cascade_to_referrers"
+        "cascade_to_referrers",
+        "delete_unowned_without_authorization",
+        "delete_modified_owned_skill",
+        "adopt_existing_skill",
+        "raw_delete_fallback"
       ],
-      "writes": ["deletion"]
+      "writes": [
+        "deletion"
+      ]
     }
   },
   "routes": [
-    {"from": "jot",     "to": "learn",   "evidence": "candidate_promotion"},
-    {"from": "learn",   "to": "refine",  "evidence": "session_overlap"},
-    {"from": "learn",   "to": "profile", "evidence": "person_fact"},
-    {"from": "refine",  "to": "forget",  "evidence": "explicit_user_request"},
-    {"from": "journey", "to": "refine",  "evidence": "review_merge"},
-    {"from": "journey", "to": "refine",  "evidence": "review_overlap"},
-    {"from": "journey", "to": "refine",  "evidence": "session_failure"},
-    {"from": "journey", "to": "forget",  "evidence": "explicit_user_request"},
-    {"from": "recall",  "to": "profile", "evidence": "second_occurrence"},
-    {"from": "profile", "to": "forget",  "evidence": "explicit_user_request"},
-    {"from": "forget",  "to": "refine",  "evidence": "session_failure"},
-    {"from": "forget",  "to": "profile", "evidence": "supersession"}
+    {
+      "from": "jot",
+      "to": "learn",
+      "evidence": "candidate_promotion"
+    },
+    {
+      "from": "learn",
+      "to": "refine",
+      "evidence": "session_overlap"
+    },
+    {
+      "from": "learn",
+      "to": "profile",
+      "evidence": "person_fact"
+    },
+    {
+      "from": "refine",
+      "to": "forget",
+      "evidence": "explicit_user_request"
+    },
+    {
+      "from": "journey",
+      "to": "refine",
+      "evidence": "review_merge"
+    },
+    {
+      "from": "journey",
+      "to": "refine",
+      "evidence": "review_overlap"
+    },
+    {
+      "from": "journey",
+      "to": "refine",
+      "evidence": "session_failure"
+    },
+    {
+      "from": "journey",
+      "to": "forget",
+      "evidence": "explicit_user_request"
+    },
+    {
+      "from": "recall",
+      "to": "profile",
+      "evidence": "second_occurrence"
+    },
+    {
+      "from": "profile",
+      "to": "forget",
+      "evidence": "explicit_user_request"
+    },
+    {
+      "from": "forget",
+      "to": "refine",
+      "evidence": "session_failure"
+    },
+    {
+      "from": "forget",
+      "to": "profile",
+      "evidence": "supersession"
+    },
+    {
+      "from": "refine",
+      "to": "forget",
+      "evidence": "owned_obsolete"
+    },
+    {
+      "from": "journey",
+      "to": "forget",
+      "evidence": "owned_verified_merge"
+    },
+    {
+      "from": "journey",
+      "to": "forget",
+      "evidence": "owned_obsolete"
+    }
   ]
 }

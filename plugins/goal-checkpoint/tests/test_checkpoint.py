@@ -303,20 +303,17 @@ class CheckpointTests(unittest.TestCase):
             self.assertEqual(json.loads(result.stdout), {})
 
     def test_contract_in_path_with_spaces(self):
+        # Source is inert; the installer binds the actual interpreter on each host.
         spaced = self.root / "installed plugin 日本語"
         shutil.copytree(SCRIPT.parent.parent, spaced)
-        environment = {**os.environ, "PLUGIN_ROOT": str(spaced), "PLUGIN_DATA": str(self.data)}
-        config = json.loads((spaced / "hooks/hooks.json").read_text())["hooks"]
+        binding = {"executable": sys.executable, "data": str(self.data), "runtime": "codex"}
+        (spaced / "binding.json").write_text(json.dumps(binding))
         for name in ("SessionStart", "UserPromptSubmit", "PostToolUse", "Stop", "Interrupt", "SessionEnd"):
-            handler = config[name][0]["hooks"][0]
             event = dict(hook_event_name=name, session_id="chat-a", cwd=str(self.workspace), turn_id="t", source="startup")
-            command = handler["commandWindows"] if os.name == "nt" else handler["command"]
-            result = subprocess.run(command, shell=True, input=json.dumps(event), text=True, encoding="utf-8", capture_output=True,
-                                    env=environment, timeout=handler["timeout"])
+            result = subprocess.run([sys.executable, "-X", "utf8", "-B", str(spaced / "scripts/host_adapter.py"), "hook", "--host", "codex"],
+                input=json.dumps(event), text=True, encoding="utf-8", capture_output=True, timeout=2)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIsInstance(json.loads(result.stdout), dict)
-            self.assertEqual(handler["additionalContextLimit"], 512)
-            self.assertLessEqual(handler["timeout"], 2)
 
     def test_timeout_kills_handler_and_preserves_baseline(self):
         # Synthetic host: a delayed state read is killed before any hook writes.

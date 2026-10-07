@@ -15,6 +15,11 @@ BIN = PLUGIN_ROOT / "bin"
 EXPECTED_TREE = frozenset({
     ".claude-plugin/plugin.json",
     "README.md",
+    "RUNTIME.md",
+    "bin/gl-run",
+    "bin/owned.py",
+    "bin/owned_windows.py",
+    "bin/owned_windows_store.py",
     "skills/learn/SKILL.md",
     "skills/jot/SKILL.md",
     "skills/refine/SKILL.md",
@@ -23,7 +28,6 @@ EXPECTED_TREE = frozenset({
     "skills/journey/SKILL.md",
     "skills/forget/SKILL.md",
     # Codex has no disable-model-invocation flag; this file is its equivalent.
-    "skills/forget/agents/openai.yaml",
     "skills/journey/agents/openai.yaml",
     "agents/skill-author.md",
     "hooks/hooks.json",
@@ -32,8 +36,8 @@ EXPECTED_TREE = frozenset({
     "bin/gl-journey",
 })
 
-MODEL_INVOKED = ("learn", "jot", "refine", "recall", "profile")
-USER_INVOKED_ONLY = ("journey", "forget")
+MODEL_INVOKED = ("learn", "jot", "refine", "recall", "profile", "forget")
+USER_INVOKED_ONLY = ("journey",)
 
 
 def run(script, args, env=None, stdin=None):
@@ -58,7 +62,7 @@ def run(script, args, env=None, stdin=None):
     return proc.returncode, proc.stdout, proc.stderr
 
 
-RUNTIME_ENV_VARS = ("CLAUDECODE", "CODEX_THREAD_ID", "CODEX_HOME")
+RUNTIME_ENV_VARS = ("CLAUDECODE", "CODEX_THREAD_ID", "CODEX_HOME", "GROWTH_LOOP_RUNTIME")
 SCRIPT_ENV_VARS = ("CLAUDE_TRANSCRIPT_DIR", "GROWTH_LOOP_HOME",
                    "GROWTH_LOOP_SKILL_ROOTS") + RUNTIME_ENV_VARS
 

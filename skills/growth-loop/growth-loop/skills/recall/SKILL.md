@@ -2,20 +2,19 @@
 name: recall
 description: Recovers context from past Claude Code sessions by searching transcripts. Use when the user refers to earlier work without restating it - "how did we fix that", "what was the workaround", "we decided something about this" - or when a task resumes and the reasoning behind the current state is not in context. Searches deterministically outside the model, then summarises.
 argument-hint: "[what to search for]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}"/bin/gl-recall:*)
 ---
 
-> Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset: use the plugin root, two
-> directories above this SKILL.md. `/growth-loop:<skill>` is `$growth-loop:<skill>` there.
+Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
+`gl-run`; never depend on shebang, PATH or an unset plugin variable.
 
 ## Search
 
-Run `"${CLAUDE_PLUGIN_ROOT}"/bin/gl-recall "<query>"`. Start with the user's own
+Run `<verified-python> -X utf8 -B <plugin-root>/bin/gl-run recall "<query>"`. Start with the user's own
 words; the phrase they just used is the one most likely in the transcript. If
 the memory is old, widen the window **and raise the cap together**:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}"/bin/gl-recall "<query>" --days 365 --max 100
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run recall "<query>" --days 365 --max 100
 ```
 
 `--days` alone will not reach it: the search reads newest first and stops at
@@ -48,7 +47,7 @@ the context this tool exists to protect and hands the user your homework.
 ## When nothing is found
 
 Before reporting a dead end, run
-`"${CLAUDE_PLUGIN_ROOT}"/bin/gl-recall --list-roots`. If it reports no root, the
+`<verified-python> -X utf8 -B <plugin-root>/bin/gl-run recall --list-roots`. If it reports no root, the
 search never ran: say so, set `CLAUDE_TRANSCRIPT_DIR` to the directory holding
 the `.jsonl` session files, and search again. Do not report "no history" when no
 history was searched.

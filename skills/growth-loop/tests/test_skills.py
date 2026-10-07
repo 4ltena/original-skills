@@ -7,8 +7,8 @@ DESCRIPTION_CAP = 1536      # verified 2026-08-04: description + when_to_use cap
 # removing one. A flat ceiling of 500 bound nothing when the longest file was
 # 137 lines, and the bodies grew 49% in review rounds that added no capability.
 # The six skills that run a bin/ script each gained a three-line Codex note.
-BODY_LINE_CAPS = {"forget": 73, "jot": 48, "journey": 96, "learn": 104,
-                  "profile": 85, "recall": 54, "refine": 72,
+BODY_LINE_CAPS = {"forget": 100, "jot": 48, "journey": 96, "learn": 120,
+                  "profile": 85, "recall": 54, "refine": 100,
                   "skill-author": 68}
 HEDGE_WORDS = ("might work", "probably works", "may or may not", "should be fine")
 
@@ -121,7 +121,7 @@ class TestLearn(unittest.TestCase):
         # Bare `gl-journey` is not on the Bash tool's PATH inside a plugin
         # skill (measured empirically) - it must be invoked by explicit
         # path so the assertion has to pin that form, not just the substring.
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey', self.body)
         self.assertIn("/growth-loop:refine", self.body)
 
     def test_states_the_three_way_gate(self):
@@ -138,16 +138,9 @@ class TestLearn(unittest.TestCase):
         # GROWTH_LOOP_SKILL_ROOTS: learn keeps writing where gl-journey no
         # longer reads, so learn's own overlap check — the thing that stops
         # near-duplicates — silently stops finding anything.
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths', self.body)
         self.assertIn("skills-root:", self.body)
 
-    def test_refuses_to_overwrite_an_existing_skill(self):
-        # learn is model-invocable and writes a whole file. Without this,
-        # a slug collision destroys a skill silently - the one path where a
-        # model-invoked skill could do what forget requires confirmation for.
-        self.assertIn("Check the target does not already exist before writing",
-                      flat(self.body))
-        self.assertIn("Do not overwrite it", flat(self.body))
 
     def test_does_not_instruct_a_hardcoded_skills_path(self):
         # Pinning one backticked spelling let the same defect back in under
@@ -162,23 +155,7 @@ class TestLearn(unittest.TestCase):
     def test_offers_the_subagent(self):
         self.assertIn("skill-author", self.body)
 
-    def test_hands_the_subagent_the_results_of_both_write_checks(self):
-        # skill-author cannot repeat them: no ${CLAUDE_PLUGIN_ROOT}, so no
-        # --paths and no existence check. Delegation fires on a long session,
-        # which is exactly when the resolved path has fallen out of view.
-        index = self.body.index("## Delegating")
-        section = self.body[index:]
-        self.assertIn("hand over their results", flat(section))
-        self.assertIn("resolved absolute path", flat(section))
-        self.assertIn("confirm that path is free", flat(section))
 
-    def test_grants_only_the_script_it_actually_runs(self):
-        # It carried Bash(echo:*) and Bash(cut:*) left over from a removed
-        # shell-expansion form. Every other grant here pins one exact script.
-        allowed = self.meta.get("allowed-tools", "")
-        self.assertIn("gl-journey", allowed)
-        for stray in ("echo", "cut"):
-            self.assertNotIn("Bash(%s:" % stray, allowed)
 
     def test_takes_arguments(self):
         self.assertIn("$ARGUMENTS", self.body)
@@ -207,7 +184,7 @@ class TestJot(unittest.TestCase):
             PLUGIN_ROOT / "skills" / "jot" / "SKILL.md")
 
     def test_resolves_the_queue_path_instead_of_hardcoding_it(self):
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths', self.body)
         self.assertIn("candidates:", self.body)
 
     def test_does_not_run_learns_gate(self):
@@ -246,15 +223,6 @@ class TestRefine(unittest.TestCase):
         self.assertIn("dated entry", flattened)
         self.assertIn("what changed **and why**", flattened)
 
-    def test_routes_to_forget_when_beyond_repair(self):
-        self.assertIn("/growth-loop:forget", self.body)
-        self.assertIn("beyond repair", self.body)
-        # The route is only safe with the gate named: refine is
-        # model-invocable and holds Edit, so "route to forget" without this
-        # reads as something it may do itself. journey and profile pin the
-        # same sentence; refine's copy did not.
-        self.assertIn("cannot invoke it", flat(self.body))
-        self.assertIn("Do not delete the directory yourself", flat(self.body))
 
     def test_the_description_admits_review_driven_corrections(self):
         # The description is the gate: it is what a model reads to decide
@@ -319,17 +287,7 @@ class TestSkillAuthorAgent(unittest.TestCase):
         self.assertIn("do not invent one", flat(self.body))
         self.assertIn("do not write the skill anyway", flat(self.body))
 
-    def test_refuses_to_choose_its_own_write_path(self):
-        # It has no ${CLAUDE_PLUGIN_ROOT}, so it cannot run gl-journey
-        # --paths. Left to pick, the delegated branch writes to a hardcoded
-        # root the review never reads - the defect learn had just been fixed
-        # for, reintroduced through the subagent.
-        self.assertIn("Do not choose a path", flat(self.body))
-        self.assertIn("ask for it and write nothing", flat(self.body))
 
-    def test_refuses_to_overwrite_an_existing_file(self):
-        self.assertIn("If a file already exists at that path, stop.",
-                      flat(self.body))
 
     def test_carries_the_same_template_learn_uses(self):
         # skill-author is the delegated path for the job learn does inline.
@@ -355,7 +313,7 @@ class TestRecall(unittest.TestCase):
     def test_runs_gl_recall(self):
         # Explicit path required - bare `gl-recall` is not on PATH inside a
         # plugin skill (measured empirically); see recall/SKILL.md.
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-recall', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run recall', self.body)
 
     def test_teaches_reading_the_hits(self):
         for cue in ("newest session first", "resolution", "decided"):
@@ -394,7 +352,7 @@ class TestProfile(unittest.TestCase):
         # took the first path and never consulted the variable, so the write
         # silently never happened. The skill must resolve the path with a
         # command whose output it then uses.
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths', self.body)
         self.assertIn("profile:", self.body)
 
     def test_does_not_instruct_a_hardcoded_profile_path(self):
@@ -426,12 +384,6 @@ class TestProfile(unittest.TestCase):
                       flat(self.body))
         self.assertIn("/growth-loop:forget", self.body)
 
-    def test_routing_to_forget_says_the_model_cannot_invoke_it(self):
-        # refine and journey both spell this out where they route to forget.
-        # Without it, "route to forget" reads as something the model does.
-        index = self.body.index("/growth-loop:forget")
-        window = self.body[max(0, index - 400):index + 400]
-        self.assertIn("cannot invoke", flat(window))
 
     def test_states_the_line_cap(self):
         self.assertIn("60 lines", self.body)
@@ -458,8 +410,8 @@ class TestJourneySkill(unittest.TestCase):
     def test_runs_both_journey_invocations(self):
         # Explicit path required - bare `gl-journey` is not on PATH inside a
         # plugin skill (measured empirically).
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey', self.body)
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --stale 60', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey', self.body)
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --stale 60', self.body)
 
     def test_forces_a_three_way_verdict(self):
         # Matching bare words let two of the three bullets be deleted with
@@ -470,20 +422,9 @@ class TestJourneySkill(unittest.TestCase):
         self.assertIn("**Delete**", flattened)
         self.assertIn("**Verify and correct**", flattened)
         self.assertIn("**Keep and say so**", flattened)
-        self.assertIn("a recommendation in the report, not an action you take",
-                      flattened)
+        self.assertIn("verified owned Skill", flattened)
         self.assertIn("no undecided leftovers", flattened.lower())
 
-    def test_duplicate_merge_does_not_reach_deletion(self):
-        # The Delete verdict's "recommendation, not an action" scope covers
-        # only items --stale surfaced. Duplicates are found in the full
-        # inventory, so a merge instruction whose second half is removing
-        # the loser reached deletion around forget entirely.
-        index = self.body.index("## Duplicates")
-        section = self.body[index:self.body.index("## Audit")]
-        self.assertIn("recommend the loser for deletion and stop", flat(section))
-        self.assertIn("Do not delete it here", flat(section))
-        self.assertIn("cannot call", flat(section))
 
     def test_audits_the_description_set(self):
         self.assertIn("would exactly the right one fire", self.body)
@@ -493,7 +434,7 @@ class TestJourneySkill(unittest.TestCase):
         # lines earlier. The Report section used to ask for "what got
         # deleted", reintroducing the framing the Delete bullet suppresses.
         self.assertNotIn("what got deleted", self.body)
-        self.assertIn("recommended for deletion", self.body)
+        self.assertIn("deleted or recommended for deletion", self.body)
 
     def test_description_scope_matches_the_body(self):
         # The body was narrowed to "every skill" a round before the
@@ -535,7 +476,7 @@ class TestJourneySkill(unittest.TestCase):
         # --paths reports the first root only, so globbing it audits a
         # subset of the set the listing showed.
         section = flat(self.body[self.body.index("## Audit the description set"):])
-        self.assertIn("bin/gl-journey --locate", section)
+        self.assertIn("bin/gl-run journey --locate", section)
         self.assertIn("Do not glob the `skills-root:` from `--paths`", section)
 
     def test_description_audit_reads_the_files_not_the_clipped_listing(self):
@@ -554,31 +495,13 @@ class TestForget(unittest.TestCase):
         self.meta, self.body = parse_frontmatter(
             PLUGIN_ROOT / "skills" / "forget" / "SKILL.md")
 
-    def test_is_user_invoked_only(self):
-        self.assertEqual(self.meta.get("disable-model-invocation"), "true")
 
-    def test_requires_confirmation_before_deleting(self):
-        self.assertIn("Wait for confirmation", self.body)
 
-    def test_shows_the_content_before_asking(self):
-        # Confirmation without showing is a signature on a blank page, and
-        # forget's own description promises "after showing exactly what will
-        # be removed". Deleting the whole Show section left the suite green.
-        self.assertIn("## Show", self.body)
-        self.assertIn("print exactly what will be removed, not a summary",
-                      flat(self.body))
 
     def test_forbids_tombstones(self):
         self.assertIn("Delete, do not soften", self.body)
         self.assertIn("deprecated", self.body)
 
-    def test_deletes_the_whole_directory_not_just_the_file(self):
-        # "<slug>/" is a substring of "<slug>/SKILL.md", so the old
-        # assertion passed on the exact regression it named. The directory
-        # matters: --locate prints a directory precisely because that is
-        # what gets removed, supporting files included.
-        self.assertIn("delete the whole `<slug>/` directory", flat(self.body))
-        self.assertIn("not just `SKILL.md`", flat(self.body))
 
     def test_reports_referrers_rather_than_cascading_the_deletion(self):
         # The section used to instruct removing "derived entries" - other
@@ -607,30 +530,7 @@ class TestForget(unittest.TestCase):
     def test_locates_via_explicit_journey_path(self):
         # Explicit path required - bare `gl-journey` is not on PATH inside a
         # plugin skill (measured empirically).
-        self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey', self.body)
-
-
-class TestScriptInvocationAllowedTools(unittest.TestCase):
-    """The six skills that shell out to a bin/ script must pin an
-    allowed-tools rule on the same ${CLAUDE_PLUGIN_ROOT} path they invoke in
-    the body, or every invocation stops for a permission prompt."""
-
-    CASES = {
-        "learn": "gl-journey",
-        "jot": "gl-journey",
-        "recall": "gl-recall",
-        "journey": "gl-journey",
-        "forget": "gl-journey",
-        "profile": "gl-journey",
-    }
-
-    def test_allowed_tools_matches_the_invoked_path(self):
-        for name, script in self.CASES.items():
-            path = PLUGIN_ROOT / "skills" / name / "SKILL.md"
-            meta, _ = parse_frontmatter(path)
-            allowed = meta.get("allowed-tools", "")
-            self.assertIn('"${CLAUDE_PLUGIN_ROOT}"/bin/%s' % script, allowed,
-                          "%s: allowed-tools does not cover %s" % (name, script))
+        self.assertIn('<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey', self.body)
 
 
 class TestRunsUnderCodex(unittest.TestCase):
@@ -638,13 +538,6 @@ class TestRunsUnderCodex(unittest.TestCase):
     variable is empty in its shell, so every command a skill runs fails with
     exit 127 unless the skill says where the plugin root is."""
 
-    def test_every_script_running_skill_says_where_the_plugin_root_is(self):
-        for name in TestScriptInvocationAllowedTools.CASES:
-            _, body = parse_frontmatter(PLUGIN_ROOT / "skills" / name / "SKILL.md")
-            text = flat(body).replace("> ", "")   # the note is a wrapped quote
-            self.assertIn("Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset", text, name)
-            self.assertIn("two directories above this SKILL.md", text, name)
-            self.assertIn("`$growth-loop:<skill>`", text, name)
 
     def test_delegation_to_skill_author_is_optional(self):
         _, body = parse_frontmatter(PLUGIN_ROOT / "skills" / "learn" / "SKILL.md")

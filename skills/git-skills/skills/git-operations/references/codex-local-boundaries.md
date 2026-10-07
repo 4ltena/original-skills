@@ -2,6 +2,18 @@
 
 Read this reference only in the user's Codex or shared preset environment. These are local operating constraints, not portable Git permissions. Check the current `~/.codex/AGENTS.md`, `~/.agents/common.md` if it applies, and the effective runtime permission profile; newer user instructions and active policy take precedence. Do not change Claude configuration or treat a Claude-only grant as a Codex grant.
 
+## Claude host
+
+On Claude, read the active host-home standard-github-policy.md, local-policy.md
+and host-read-policy.md, or the explicit installed host binding. Do not import
+another host's ~/.codex files, invent auto_review or invoke Codex CLI. Use actual
+Claude permission prompts and available tools. A selected manual-git profile
+requires an explicit request for every Git/GitHub write; implementation approval
+alone is insufficient. All existing main/master, force, release, identity,
+secret, deletion and instruction-file restrictions remain. Git/GitHub reads use
+that host's fixed validators; missing bindings block those reads. The Codex
+section below applies only on Codex.
+
 ## Codex standard
 
 Read `~/.codex/standard-github-policy.md` before Git operations. It is the authority for Codex standard and overrides the older shared/Skill approval defaults. Within the requested task, it preauthorizes ordinary staging/commits and local merges on non-main/master destination branches, and ordinary pushes to non-main/master destination branches. Inspect current worktree branch and all push/merge destinations with the pinned Git reader. A merge from main into a feature branch writes the feature branch; a merge into main writes main. Respect any stricter repository gates and preserve existing work.

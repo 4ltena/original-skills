@@ -2,6 +2,18 @@
 
 Read this only in the user's Codex or shared preset environment. Check the current `~/.codex/AGENTS.md`, `~/.agents/common.md` if applicable, and effective runtime permissions. Newer user instructions and active policy take precedence. Do not treat Claude-only grants as Codex grants or change Claude configuration.
 
+## Claude host
+
+On Claude, read the active host-home standard-github-policy.md, local-policy.md
+and host-read-policy.md, or the explicit installed host binding. Do not import
+another host's ~/.codex files, invent auto_review or invoke Codex CLI. Use actual
+Claude permission prompts and available tools. A selected manual-git profile
+requires an explicit request for every Git/GitHub write; implementation approval
+alone is insufficient. All existing main/master, force, release, identity,
+secret, deletion and instruction-file restrictions remain. Git/GitHub reads use
+that host's fixed validators; missing bindings block those reads. The Codex
+section below applies only on Codex.
+
 ## Codex standard
 
 Read `~/.codex/standard-github-policy.md` before GitHub operations. It is the authority for Codex standard and overrides older shared/Skill approval defaults. Within a requested task, ordinary PR and Issue creation/updates do not need another user confirmation. Other-person comments or messages need a named target and operation. Every PR merge, main/master write, remote deletion, release publication, visibility, secret and protection-rule change needs the policy's individual approval unless the exact target and effect were already approved. A user request that explicitly names the required target and effect can satisfy that approval; do not ask for it twice. This Skill does not add a gate or bypass one. Assess `gh api` by endpoint and body, including GraphQL mutations; runtime auto-review is separate from user approval.

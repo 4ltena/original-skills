@@ -1,79 +1,140 @@
-# Environment setup procedure
+# Agent-led environment setup
 
-Instructions for a Codex or Claude Code agent rebuilding this environment on a new machine. Work through the steps in order. Before writing configuration, settings, global Git config or an existing instruction file, show the user the exact diff and obtain approval; back up any file you replace. Never copy credentials.
+Open this repository with the Claude or Codex agent you already use. Ask it to
+install original-skills on this machine using this procedure. The agent asks the
+predefined questions one at a time; neither agent CLI is required for preparation.
+Do not run the apply command until the user has approved the concrete generated
+plan and configuration diff. Preserve existing files and fixed host reader bindings.
+Never copy authentication material or install missing tools without authorization.
 
-## 0. Check requirements
+## 1. Ask the questions
 
-| Tool | Version | Needed for |
-| --- | --- | --- |
-| Codex CLI | 0.157 or newer (permission profiles are beta) | Codex setup |
-| Claude Code | current | Claude Code setup |
-| Python | 3.10 or newer | validators, `apply_config.py`, plugin hooks |
-| Git | 2.54 or newer; on Windows at the default install path | Git read validator |
-| GitHub CLI | 2.93 or newer; on Windows at the default install path | GitHub read validator |
-| Bash with `jq` or `python3` | any | Claude Code push-guard hook (on Windows, Git Bash) |
+Read [questions.json](questions.json). Keep answers by stable question ID in the
+conversation. Ask only applicable questions and show the Skill names included in
+each set. Use the host's question UI if available, otherwise normal conversation.
+The shared helper prints the next question plus available names and sets:
 
-Report missing tools to the user before continuing; do not install them without approval.
+```text
+<verified-Python-3.10+> -X utf8 -B <repository>/environment/install.py questions
+```
 
-## 1. Resolve inputs
+Pass the answer object through stdin; start with `{}`. Host, Claude surface,
+user/project scope, Skill set or individual names, plugin functions, Git mode,
+owned deletion, checkpoint mode and settings scope are asked in order. New
+installations show manual-git as recommended, but unanswered questions never
+become implicit consent. `project_path` is required for project scope;
+`skill_names` is required for custom selection. Explain additional dependencies
+and return to selection when the user does not want them.
 
-Determine and confirm with the user:
+For example, completed answers for a minimal Claude setup are:
 
-| Input | Default |
-| --- | --- |
-| Agents to configure | Codex and Claude Code |
-| `CODEX_HOME` | `~/.codex` |
-| Codex skills directory | `~/.agents/skills` |
-| Claude Code skills directory | `~/.claude/skills` |
-| Python 3.10+ interpreter (absolute path) | from `python --version` / `where python` |
-| Workspace root holding repositories | ask |
-| Reply language | ask |
-| Repositories allowed direct main/master pushes | none |
+```json
+{"host":"claude","surface":"desktop","scope":"user","skills":"basic",
+ "plugins":[],"git_mode":"manual-git","settings":"candidates"}
+```
 
-## 2. Install skills
+For growth-loop include `"growth-loop"` in plugins, confirm the displayed generated
+Skill roots with `growth_root: "selected-skills"`, and set `auto_delete: "yes"` or
+`"no"`. For goal-checkpoint include `"goal-checkpoint"` and `checkpoint:
+"enabled"` or `"manual"`. Explain that three hours means the next supported
+session event after the deadline, not a timer running while idle. Chat without
+terminal/hooks uses explicit manual procedures; local preparation does not upload
+Skills into a remote chat or prove their activation there.
 
-Every directory under `skills/` that contains `SKILL.md`, including nested `skills/*/skills/*`, is one skill. Copy each into the skills directory of every configured agent under its own name. Skip:
+The agent handles back/change by revising answers and discarding inapplicable
+ones. Cancel before applying leaves the destination unchanged. Keep answers in
+conversation unless the user asks to save a non-secret plan for reuse/resume.
+Saved answers require fresh path, Python, capability and conflict checks on each
+machine. Do not persist credentials, prompts or transcript content.
 
-- `h5i-*` (retired Linux tooling) and `site-account-catalog`, unless the user asks for them;
-- `skills/growth-loop`, which is a Claude Code plugin installed in step 6;
-- for Codex only, `skills/workflow`, `skills/design-generation`, `skills/plan-review-loop` and `skills/ux-spike`, because the workflow plugin (step 3) ships the same skills. Claude Code does not load Codex plugins, so install them as skills there; also copy `frontend-design` and `grilling` from `plugins/workflow/skills/` for Claude Code.
+## 2. Diagnose and build a plan
 
-Validate each installed skill with the `quick_validate.py` of the available skill-creator skill (on Windows set `PYTHONUTF8=1`).
+Identify a real Python 3.10+ executable. On Windows, inspect installed interpreter
+paths (or the Python launcher's interpreter listing), then probe the absolute
+executable; do not launch the WindowsApps python3 alias. The helper itself uses
+only Python's standard library. Explicit invalid interpreters fail without fallback.
+Git/GitHub binaries and pinned reader versions are required only for the Skills
+that use them; absent readers block those operations rather than all placement.
+Agent CLI, LSP, authentication and third-party plugins are optional host features.
 
-## 3. Install Codex plugins
+```text
+<verified-python> -X utf8 -B <repository>/environment/install.py plan --home <target-home> --python <absolute-python>
+```
 
-Copy this repository's `plugins/workflow` and `plugins/goal-checkpoint` to `~/.codex/plugins/`. Create `~/.agents/plugins/marketplace.json` from `codex/marketplace.example.json` (paths are relative to the home directory), or add its entries to an existing `personal` marketplace. Then run `codex plugin add workflow@personal` and `codex plugin add goal-checkpoint@personal`, and ask the user to trust the goal-checkpoint hooks through `/hooks` in Codex. Refresh later by updating `~/.codex/plugins/<name>` and re-running `codex plugin add`, never by editing the plugin cache.
+Pass the completed answers on stdin. Inspect selected Skills, added dependencies,
+all create/change paths and exact diffs, preserved files and remaining host
+registration/trust. The helper diagnoses existing files rather than overwriting
+Skills; frontend-design is installed only from the personal source and an existing
+same-name Skill always wins. superpowers, external frontend-design, commit-commands,
+LSP and other third-party plugins are not automatically installed/enabled.
 
-## 4. Place Codex instruction files
+`skills-only` places Skills and bound runtime helpers. `candidates` additionally
+prepares settings/instruction candidates. `apply-selected` merges selected Claude
+permissions/hooks and appends the selected host-policy reference to instructions,
+with backups; unrelated model/plugin settings remain intact. Existing policy and
+reader files are preserved. Resolve any policy conflict explicitly; do not claim a
+new profile is effective while an existing policy prevents it. The Codex full
+sandbox TOML and global Git identity/config are separate operations and are not
+modified by this helper.
 
-Copy into `CODEX_HOME`:
+Skill files live once in the selected host's skills directory. Runtime packages in
+`<host-home>/original-skills/` contain hooks/helpers, with no duplicate Skill tree.
+Bindings record the probed executable and explicit state/Skill roots. Generated
+Claude hooks use an executable plus an argument array, bypassing shell quoting on
+every platform. Codex Windows shell-form commands quote spaces/Unicode and reject
+expansion characters that cannot be represented. Source hook templates are inert
+until generated. Verify the host supports the generated schema before registration;
+the [Claude hook reference](https://code.claude.com/docs/en/hooks#exec-form-and-shell-form)
+documents the required exec form. Older unsupported hosts need manual operation
+or an explicitly reviewed update, without a guessed shell fallback.
 
-- `codex/AGENTS.md` → `AGENTS.md`
-- `codex/standard-github-policy.md` → `standard-github-policy.md`
-- `codex/host-read-policy.md` → `host-read-policy.md`; fill `<python>` and `<skills-dir>`, keep only the section for this OS.
-- `codex/local-policy.example.md` → `local-policy.md`; fill the language and exception list.
+## 3. Apply only the reviewed plan
 
-`provider-policy.md` belongs to provider plugins; leave any existing one in place. Without it, provider integrations stay blocked as `AGENTS.md` requires.
+After the user approves its exact effects, pass the generated plan on stdin:
 
-## 5. Merge Codex configuration
+```text
+<verified-python> -X utf8 -B <repository>/environment/install.py apply --approve-plan <reviewed-plan_id>
+```
 
-Merge `codex/config.standard.toml` into `CODEX_HOME/config.toml` with `python codex/apply_config.py --workspace-root <workspace-root>` (repeat the option for several roots). On Windows each root must be a directory the user's account owns: the sandbox sets ACLs on it, and a root owned by another or stale account fails with `SetNamedSecurityInfoW failed: 5` in `CODEX_HOME/.sandbox/*.log`. It prints a diff without writing; show it to the user, then re-run with `--apply` (the old file is kept as `config.toml.bak-<timestamp>`). The script sets the template's keys, keeps unrelated settings and entries the user added, removes `sandbox_mode` and `[sandbox_workspace_write]`, and skips `[windows]` on other platforms. Add package domains the user's toolchains need to the template first.
+The plan ID is a freshness check, not a substitute for human approval. The helper
+recomputes against this machine and refuses changed destinations or dependencies
+before writing. Replaced files get unique sibling backups. If a filesystem error
+interrupts application, inspect the reported/remaining paths, preserve backups and
+build a fresh plan; do not retry a stale plan or erase partial files indiscriminately.
 
-On Windows, the elevated sandbox runs commands as a separate user, so Git refuses repositories owned by the real user ("dubious ownership") and every Git read escalates. With approval, run `git config --global --add safe.directory "<workspace-root>/*"` (forward slashes).
+For manual-git, explicit user requests are required for stage/commit/push/merge/tag,
+PR creation/update and GitHub writes. Claude gets ask rules and a conservative
+PreToolUse guard; the exact bound owned helper is allowed without broad rm grants.
+Codex gets host policy plus direct Git/GitHub prompt rules. Wrappers/APIs are not
+an absolute sandbox boundary: host permissions and existing stricter gates apply.
+Switching an existing automatic profile requires a reviewed change rather than
+keeping conflicting automatic hooks/rules active.
 
-## 6. Configure Claude Code
+## 4. Register and verify supported host features
 
-- Copy `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`, or prepend its two import lines to an existing file.
-- Copy `claude/hooks/git-push-guard.sh` to `~/.claude/hooks/` and make it executable (`chmod +x`). It asks before force pushes and pushes to main/master and denies remote deletion, as a second layer behind the permission rules.
-- Merge `claude/settings.template.json` into `~/.claude/settings.json`, keeping existing entries: `permissions.ask`/`deny`, the `PreToolUse` hook, `extraKnownMarketplaces` and `enabledPlugins`. Confirm the plugin list with the user; the LSP plugins only help when their language servers are installed. Model and effort settings stay the user's choice.
-- Install growth-loop from this repository: in Claude Code run `/plugin marketplace add <repository>/skills/growth-loop`, then `/plugin install growth-loop@growth-loop-local`.
+Placement and preparation are complete independently of CLI availability. Invoke
+installed Skills from the actual host catalog or read their SKILL.md in conversation.
+[HOSTS.md](HOSTS.md) lists all 46 entrypoints and adapters. Do not claim plugin or
+hook activation from a file copy. Use the selected host's supported source/plugin
+registration and trust UI only when available and within the approved plan. Claude
+settings hooks can use the prepared runtime directly; do not also register the same
+hook package and double-fire it. On Codex register the generated hooks-only runtime
+through its supported local marketplace/plugin flow, then trust the actual hooks.
+Use the installed directory as the source and a reviewed marketplace entry. Never
+edit plugin caches. Workflow procedures are already standalone Skills and need no
+additional plugin registration in this route.
 
-## 7. Verify
+For goal-checkpoint, native Codex creation hooks can auto-register after successful
+create_goal. Claude requires explicit enable from the user's objective/plan and a
+confirmed session_id; without session hooks use manual review. No native goal is
+invented. For growth-loop, all commands use verified Python + installed bin/gl-run.
+Only newly created Skills with a valid ownership ledger may be auto-deleted;
+manual/synced/vendor/profile/memory and externally changed Skills are excluded.
+See [growth-loop runtime](../skills/growth-loop/growth-loop/RUNTIME.md).
 
-Report each result; mark anything not run as unverified.
-
-1. In a repository under the workspace root: `codex sandbox git status --short` succeeds without an ownership error.
-2. `codex sandbox <python> -c "print(1)"` succeeds.
-3. A new Codex session answers, from its loaded instructions, which operations need user approval; the answer matches the "User approval" list in `standard-github-policy.md`.
-4. A new Claude Code session shows the imported `AGENTS.md` in `/memory`, `git push --force` triggers a permission prompt, and `/plugin` lists the enabled plugins.
-5. `codex plugin list` shows `workflow` and `goal-checkpoint` from `personal`.
+Verify metadata/references, JSON/TOML parsing where changed, selected command
+smokes, host registration/trust and live delivery separately. Missing runtime
+capabilities remain unverified. Windows real-machine, paid model E2E, three-hour
+live notification and multi-day development evidence must never be inferred from
+an offline fixture. Optional full Codex config merging remains in
+[codex/apply_config.py](codex/apply_config.py); review its exact diff separately.

@@ -51,23 +51,17 @@ material you were given. If there is none, do not invent one, and do not write
 the skill anyway: report that the material does not support a skill, since it is
 a happy path nothing distinguishes from what a model produces unaided.
 
-## Write where you were told, and nowhere else
+## Return a payload to the caller
 
-You are given an absolute path. Use it exactly. **Do not choose a path**: do not
-derive one from the skill name or fall back to `~/.claude/skills`. Where skills
-live is resolved by a tool you cannot run, and a path you pick is one the review
-never reads. If you were not given a path, ask for it and write nothing until
-you have one.
+The caller supplies a resolved target and factual evidence. Prepare a JSON
+object of relative paths and UTF-8 contents with `SKILL.md`; return it to the
+caller, which creates the Skill exclusively through `gl-run owned create`.
+Never write directly to the final Skill directory, adopt an existing Skill,
+choose another path, or overwrite a collision. The caller owns the generation
+and registry transaction. If no target/evidence was supplied, ask for it.
 
-**If a file already exists at that path, stop.** Do not overwrite or append to
-it, and do not write beside it under a modified name. Report the collision.
-Overwriting destroys a skill as completely as deleting it, and deletion here
-requires showing a human the content.
-
-Draft the body first and write the description last, so it describes what the
-document contains.
+Draft the body first and write the description last.
 
 ## Report exactly two things
 
-The path you wrote and the description line. Nothing else: not the body, not
-your assessment, not a summary.
+The payload and its description line. Do not claim it was installed; creation is the caller's verified helper operation.

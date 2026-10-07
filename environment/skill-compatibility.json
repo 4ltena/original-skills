@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-watchdog": {
+      "classification": "manual-equivalent",
+      "source": "skills/agent-watchdog",
+      "entrypoint": "scripts/recovery.py: explicit failure evidence -> bounded continuation decision",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "agentic-development-audit": {
+      "classification": "portable",
+      "source": "skills/agentic-development-audit",
+      "entrypoint": "conversation Skill: agentic-development-audit; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "apple-design-principles": {
+      "classification": "portable",
+      "source": "skills/apple-design-principles",
+      "entrypoint": "conversation Skill: apple-design-principles; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "code-inspection": {
+      "classification": "portable",
+      "source": "skills/code-inspection",
+      "entrypoint": "conversation Skill: code-inspection; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "completion-report": {
+      "classification": "portable",
+      "source": "skills/completion-report",
+      "entrypoint": "conversation Skill: completion-report; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "design-generation": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/design-generation",
+      "entrypoint": "conversation Skill: design-generation; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-authoring": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-authoring",
+      "entrypoint": "conversation Skill: document-authoring; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-files": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-files",
+      "entrypoint": "conversation Skill: document-files; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-rewriting": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-rewriting",
+      "entrypoint": "conversation Skill: document-rewriting; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-sources": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-sources",
+      "entrypoint": "conversation Skill: document-sources; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-style-ja": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-style-ja",
+      "entrypoint": "conversation Skill: document-style-ja; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-translation": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-translation",
+      "entrypoint": "conversation Skill: document-translation; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "document-writing": {
+      "classification": "portable",
+      "source": "skills/document-skills/skills/document-writing",
+      "entrypoint": "conversation Skill: document-writing; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "finish-line": {
+      "classification": "portable",
+      "source": "skills/finish-line",
+      "entrypoint": "conversation Skill: finish-line; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "forget": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/forget",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "frontend-design": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/frontend-design",
+      "entrypoint": "conversation Skill: frontend-design; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "frontend-optimize-apple": {
+      "classification": "portable",
+      "source": "skills/frontend-optimize/skills/frontend-optimize-apple",
+      "entrypoint": "conversation Skill: frontend-optimize-apple; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "frontend-optimize-linux": {
+      "classification": "portable",
+      "source": "skills/frontend-optimize/skills/frontend-optimize-linux",
+      "entrypoint": "conversation Skill: frontend-optimize-linux; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "frontend-optimize-webapp": {
+      "classification": "portable",
+      "source": "skills/frontend-optimize/skills/frontend-optimize-webapp",
+      "entrypoint": "conversation Skill: frontend-optimize-webapp; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "frontend-optimize-windows": {
+      "classification": "portable",
+      "source": "skills/frontend-optimize/skills/frontend-optimize-windows",
+      "entrypoint": "conversation Skill: frontend-optimize-windows; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "gh-operations": {
+      "classification": "adapted",
+      "source": "skills/git-skills/skills/gh-operations",
+      "entrypoint": "Claude host policy + explicit GitHub request when manual-git; verified provider/CLI",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "gh-read-inspection": {
+      "classification": "adapted",
+      "source": "skills/git-skills/skills/gh-read-inspection",
+      "entrypoint": "active Claude host-read-policy.md fixed GitHub validator; no CLI substitution",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "git-operations": {
+      "classification": "adapted",
+      "source": "skills/git-skills/skills/git-operations",
+      "entrypoint": "Claude host policy + explicit Git request when manual-git; available Git tool",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "git-read-inspection": {
+      "classification": "adapted",
+      "source": "skills/git-skills/skills/git-read-inspection",
+      "entrypoint": "active Claude host-read-policy.md fixed Git validator; no CLI substitution",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "git-writing": {
+      "classification": "portable",
+      "source": "skills/git-skills/skills/git-writing",
+      "entrypoint": "conversation Skill: git-writing; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "goal-checkpoint": {
+      "classification": "adapted",
+      "source": "plugins/goal-checkpoint/skills/goal-checkpoint",
+      "entrypoint": "host_adapter.py --host claude: explicit objective baseline and confirmed session",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "grilling": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/grilling",
+      "entrypoint": "conversation Skill: grilling; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "japanese-writing-refine": {
+      "classification": "portable",
+      "source": "skills/japanese-writing-refine/skills/japanese-writing-refine",
+      "entrypoint": "conversation Skill: japanese-writing-refine; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "jot": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/jot",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "journey": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/journey",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "learn": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/learn",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "mutation-check": {
+      "classification": "portable",
+      "source": "skills/mutation-check",
+      "entrypoint": "conversation Skill: mutation-check; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "plan-review-loop": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/plan-review-loop",
+      "entrypoint": "conversation Skill: plan-review-loop; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "profile": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/profile",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "project-handoff": {
+      "classification": "portable",
+      "source": "skills/project-handoff",
+      "entrypoint": "conversation Skill: project-handoff; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "read-evidence": {
+      "classification": "portable",
+      "source": "skills/read-evidence",
+      "entrypoint": "conversation Skill: read-evidence; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "recall": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/recall",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "refine": {
+      "classification": "adapted",
+      "source": "skills/growth-loop/growth-loop/skills/refine",
+      "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "releasing": {
+      "classification": "adapted",
+      "source": "skills/releasing",
+      "entrypoint": "Claude host policy + portable packaging commands; explicit release approval",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "site-account-catalog": {
+      "classification": "adapted",
+      "source": "skills/site-account-catalog",
+      "entrypoint": "accountctl.py --catalog <explicit root>: find/identity/license; registered broker only",
+      "fixture": "environment/tests/test_portability.py"
+    },
+    "smallest-change": {
+      "classification": "portable",
+      "source": "skills/smallest-change",
+      "entrypoint": "conversation Skill: smallest-change; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "spec-first-development": {
+      "classification": "portable",
+      "source": "skills/spec-first-development",
+      "entrypoint": "conversation Skill: spec-first-development; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "task-relay": {
+      "classification": "portable",
+      "source": "skills/task-relay",
+      "entrypoint": "conversation Skill: task-relay; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "ux-spike": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/ux-spike",
+      "entrypoint": "conversation Skill: ux-spike; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "web-source-structure": {
+      "classification": "portable",
+      "source": "skills/web-source-structure",
+      "entrypoint": "conversation Skill: web-source-structure; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
+    "workflow": {
+      "classification": "portable",
+      "source": "plugins/workflow/skills/workflow",
+      "entrypoint": "conversation Skill: workflow; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    }
+  }
+}

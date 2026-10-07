@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Portable entrypoint. Invoke with the verified absolute Python, never via shebang on Windows."""
+import json
+import os
+from pathlib import Path
+import runpy
+import sys
+
+root = Path(__file__).resolve().parents[1]
+binding = json.loads((root / 'binding.json').read_text(encoding='utf-8'))
+if Path(sys.executable).resolve() != Path(binding['executable']).resolve() or sys.version_info < (3, 10):
+    raise SystemExit('growth-loop: use the verified Python in binding.json')
+os.environ['GROWTH_LOOP_HOME'] = binding['data']
+os.environ['GROWTH_LOOP_SKILL_ROOTS'] = binding['root']
+os.environ['GROWTH_LOOP_RUNTIME'] = binding['runtime']
+if len(sys.argv) < 2 or sys.argv[1] not in {'nudge', 'journey', 'recall', 'owned'}:
+    raise SystemExit('usage: gl-run nudge|journey|recall|owned [arguments]')
+operation = sys.argv.pop(1)
+if any(arg == '--binding' or arg.startswith('--binding=') for arg in sys.argv):
+    raise SystemExit('growth-loop: installed binding cannot be overridden')
+script = root / 'bin' / ('owned.py' if operation == 'owned' else 'gl-' + operation)
+sys.argv[0] = str(script)
+sys.path.insert(0, str(root / 'bin'))
+runpy.run_path(str(script), run_name='__main__')

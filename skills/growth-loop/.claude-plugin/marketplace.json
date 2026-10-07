@@ -8,8 +8,8 @@
     {
       "name": "growth-loop",
       "source": "./growth-loop",
-      "description": "A closed learning loop for Claude Code: jot a fleeting insight the instant it surfaces, distil finished work into skills, refine them the moment they prove wrong, nudge you to persist what mattered, recall reasoning from past sessions, and model the person across projects.",
-      "version": "0.2.0"
+      "description": "A Claude/Codex learning loop: distil insights into Skills, refine verified routes, nudge after work, recall prior reasoning and model explicit preferences, with ownership-scoped curation.",
+      "version": "0.3.0"
     }
   ]
 }

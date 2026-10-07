@@ -1,7 +1,7 @@
 {
   "name": "goal-checkpoint",
-  "version": "0.1.2+codex.2026100703",
-  "description": "Local Codex milestone evidence checkpoints after three hours on Windows, macOS and Linux.",
+  "version": "0.2.0",
+  "description": "Claude/Codex milestone reassessment after three hours at the next supported session event.",
   "author": {
     "name": "4ltena"
   },

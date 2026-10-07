@@ -1,11 +1,10 @@
 ---
 name: jot
 description: Captures a one-line note the instant something in the conversation looks worth remembering later, without the overhead of a full skill. Use when a plausible dead end, a non-obvious flag, or a hard-won detail surfaces mid-task and stopping to run the full /growth-loop:learn gate would break flow; also use when the user says "note that down" or "jot this". Not a substitute for learn - it queues raw material that learn's overlap check and three-condition gate still judge before anything becomes a skill.
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey:*)
 ---
 
-> Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset: use the plugin root, two
-> directories above this SKILL.md. `/growth-loop:<skill>` is `$growth-loop:<skill>` there.
+Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
+`gl-run`; never depend on shebang, PATH or an unset plugin variable.
 
 ## The one condition
 
@@ -23,7 +22,7 @@ both happen later, at promotion time - not now, and not by this skill.
 Resolve the file before writing:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths
 ```
 
 Take the `candidates:` line and append to it. Never overwrite the file and

@@ -9,11 +9,24 @@ Compare evidence of meeting approved completion criteria, rather than edit, comm
 
 ## Runtime and commands
 
-Requires Python 3.9+ and local Codex command hooks on Windows, macOS or Linux. Resolve the installed `../../scripts/checkpoint.py` and the actual runtime `PLUGIN_DATA`; never guess either path. Use a verified Python (`python` on Windows, `python3` on POSIX), `-X utf8 -B`, and quoted absolute paths.
+Requires verified Python 3.10+ and the selected host's command hooks on Windows, macOS or Linux. Resolve the installed `../../scripts/checkpoint.py` and the actual runtime `PLUGIN_DATA`; never guess either path. Use a verified Python (`python` on Windows, `python3` on POSIX), `-X utf8 -B`, and quoted absolute paths.
 
 Use runtime `CODEX_THREAD_ID`, or a runtime-confirmed `--session`; never infer it from cwd. Commands are `enable`, `status`, `review`, `baseline`, `ack`, `disable` and `resume`. Enable accepts `--workspace <confirmed absolute workspace>`; resume uses the registered workspace. Pass JSON through protected stdin, not shell interpolation.
 
 Review and trust the exact installed hook definition through `/hooks`. Report installation, trust and live delivery separately. Three hours means the next supported event after 10,800 seconds from enable/ack, not an idle background timer.
+
+## Claude entrypoint
+
+Use the installed `../../scripts/host_adapter.py` with the verified Python,
+`--host claude`, the local binding.json and `--session <runtime-confirmed session_id>`.
+It offers the same enable/status/review/baseline/ack/disable/resume operations.
+The Claude hook adapter namespaces sessions and records turns from UserPromptSubmit;
+it does not infer native goals from tool names. Begin only from the user's explicit
+objective and approved plan, with the same baseline JSON below. Check that purpose
+and stop instructions at review; do not call get_goal/create_goal on Claude.
+Without hooks/session IDs, explicitly choose a manual monitor session and invoke
+review from the conversation; report manual monitoring, not automatic 3h delivery.
+Installation uses the agent-led environment setup and supported host registration.
 
 ## Automatic registration
 

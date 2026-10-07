@@ -97,6 +97,9 @@ def runtime():
     they are only the fallback for a checkout run by hand. Claude is checked
     first there and is the default, so a plain terminal behaves as it always did.
     """
+    bound = os.environ.get("GROWTH_LOOP_RUNTIME")
+    if bound in {"claude", "codex"}:
+        return bound
     try:
         Path(__file__).resolve().relative_to(
             (expand("$CODEX_HOME") / "plugins").resolve())
@@ -169,7 +172,7 @@ def collect_skills():
         except OSError:
             continue
         for path in paths:
-            if SKIP_DIRS.intersection(path.relative_to(root).parts):
+            if SKIP_DIRS.intersection(path.relative_to(root).parts) or any(part.startswith(".gl-") for part in path.relative_to(root).parts):
                 continue
             try:
                 key = str(path.resolve())

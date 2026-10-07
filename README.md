@@ -2,7 +2,7 @@
 
 Personal skills and plugin sources.
 
-To set up Codex and Claude Code from this repository on a new machine, start with [environment/README.md](environment/README.md).
+To set up Codex and Claude Code from this repository on a new machine, start with [environment/README.md](environment/README.md). The agent asks predefined questions to select the installation scope; CLI-free preparation, manual-git and ownership-only growth-loop deletion are supported.
 
 | Component | Location |
 | --- | --- |

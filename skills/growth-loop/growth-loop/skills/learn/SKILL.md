@@ -2,15 +2,14 @@
 name: learn
 description: Distils a reusable skill from work that just finished, when a task took real effort to get right and the same problem will come back. Use when the user says "remember how to do this", "write that down", or "make a skill for this"; when a multi-step procedure has just succeeded after several failed attempts; or when the nudge hook reports a heavy session. Takes an optional target - a directory or URL - and otherwise distils this conversation.
 argument-hint: "[directory-or-url]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey:*)
 ---
 
-> Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset: use the plugin root, two
-> directories above this SKILL.md. `/growth-loop:<skill>` is `$growth-loop:<skill>` there.
+Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
+`gl-run`; never depend on shebang, PATH or an unset plugin variable.
 
 ## First: check for overlap
 
-Run `"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey` and read the SKILLS section. If an
+Run `<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey` and read the SKILLS section. If an
 existing skill already covers the same ground, stop and route to
 `/growth-loop:refine` instead of writing a second one. Near-duplicates are the
 rot vector: whichever fires first gets followed, correct or not.
@@ -42,22 +41,23 @@ and stopping is a success. Reject these common false positives:
 Resolve the directory before writing; do not assume a path:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths
 ```
 
-Write to `<that directory>/<slug>/SKILL.md` using the `skills-root:` line, with
-`<slug>` in kebab-case. That is the first root `gl-journey` reads, so the
-overlap check above will find what you write. Do not hardcode `~/.claude/skills`,
-and do not resolve it with a shell expansion such as
-`${GROWTH_LOOP_SKILL_ROOTS:-...}`: some hook policies refuse any command
-containing one, and the skill then falls back to guessing.
+Read the `skills-root:` line from that result. Create through the installed ownership helper, never by writing directly into the
+Skill root. Resolve the verified Python and `bin/gl-run` from the local binding
+(see [runtime](../../RUNTIME.md)). Prepare a JSON object mapping relative paths
+to UTF-8 contents, including `SKILL.md`, and pass it through stdin:
 
-**Check the target does not already exist before writing.** If
-`<slug>/SKILL.md` is there, stop. Do not overwrite it and do not quietly pick
-`<slug>-2`: overwriting destroys a skill as surely as deleting it, with nobody
-shown what was lost. Report the collision. If the existing skill covers the
-same ground, the answer is `/growth-loop:refine`; if the content is unrelated,
-choose a slug that names this situation more precisely.
+```text
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run owned create <slug>
+```
+
+The helper exclusively creates an unused slug and records generation, directory
+identity, file identities and digests in its private ledger. Existing/manual/
+synced skills are never adopted or overwritten. A collision is a stop: report it
+and route genuine overlap to `/growth-loop:refine`, without a silent `-2` slug.
+Report the returned path and generation; failed/pending creation is not active.
 
 ## The template
 
@@ -95,7 +95,7 @@ For a long session, dispatch the `skill-author` subagent if your runtime has it
 (Codex does not ship it), otherwise write inline. Hand it the facts (what was attempted, what failed and why, what worked);
 it writes the document, so do not draft it first. It cannot resolve
 `${CLAUDE_PLUGIN_ROOT}`, so do both write checks yourself and hand over their
-results: give it the resolved absolute path and confirm that path is free first.
+results: give it the resolved target and facts; it returns a payload to the main session, which alone calls the ownership helper. Do not delegate a direct final-directory write.
 
 ## Reporting
 

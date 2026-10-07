@@ -1,18 +1,17 @@
 ---
 name: profile
 description: Maintains a cross-project model of the person - their tooling, conventions, and working style - in a profile file kept outside any repository. Use when a stated preference recurs for the second time, when the user corrects the same class of thing again, or when the nudge hook reports a heavy session. CLAUDE.md describes the project; this describes the person and travels between repos.
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey:*)
 ---
 
-> Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset: use the plugin root, two
-> directories above this SKILL.md. `/growth-loop:<skill>` is `$growth-loop:<skill>` there.
+Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
+`gl-run`; never depend on shebang, PATH or an unset plugin variable.
 
 ## The file
 
 Resolve the path before reading or writing; do not assume it:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --paths
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --paths
 ```
 
 Use the `profile:` line for both the read and the write. Reading one path and

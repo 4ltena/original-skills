@@ -24,7 +24,11 @@ side. Never a half-remembered past failure or a guess. Fire when:
 
 Read the whole file first: a targeted edit to a file you have not read
 contradicts sections you did not see. Then make the smallest correct edit,
-verified against the evidence that brought you here. Then append a dated entry
+verified against the evidence that brought you here. For a growth-loop-owned
+Skill, stage the complete updated payload and use `gl-run owned update <slug>
+--generation <id>` through the verified Python, with JSON on stdin; do not edit
+the live directory directly. Read [runtime](../../RUNTIME.md) and check owned
+status first. Unowned user Skills stay ordinary scoped edits and are not adopted. Then append a dated entry
 under `## Revisions` saying what changed **and why**:
 
 ```markdown
@@ -59,9 +63,10 @@ step.
 ## When it is beyond repair
 
 If more than half the skill is wrong, or it is patched so often the throughline
-is gone, stop editing and route to `/growth-loop:forget`. You cannot invoke it:
-present the skill and why it is beyond repair, then stop and let the person run
-it. Do not delete the directory yourself. A heavily patched skill built on a
+is gone, stop editing and route to `/growth-loop:forget`. For verified owned Skills with automatic deletion enabled, invoke forget with
+the obsolete evidence. For other targets, present the Skill and reason, then
+stop unless the user has explicitly authorized that exact deletion. Do not
+delete a directory directly. A heavily patched skill built on a
 dead assumption still reads as authoritative, which is worse than none.
 
 ## When to write nothing

@@ -25,15 +25,8 @@ class TestHooks(unittest.TestCase):
     def setUp(self):
         self.data = json.loads((PLUGIN_ROOT / "hooks" / "hooks.json").read_text())
 
-    def test_registers_both_events(self):
-        self.assertEqual(sorted(self.data["hooks"].keys()), ["SessionEnd", "Stop"])
-
-    def test_both_point_at_gl_nudge_via_plugin_root(self):
-        for event in ("Stop", "SessionEnd"):
-            entry = self.data["hooks"][event][0]["hooks"][0]
-            self.assertEqual(entry["type"], "command")
-            self.assertIn("${CLAUDE_PLUGIN_ROOT}", entry["command"])
-            self.assertTrue(entry["command"].endswith("/bin/gl-nudge"))
+    def test_source_has_no_unverified_interpreter_hooks(self):
+        self.assertEqual(self.data["hooks"], {})
 
     def test_no_blocking_configuration(self):
         raw = (PLUGIN_ROOT / "hooks" / "hooks.json").read_text()
@@ -47,8 +40,7 @@ class TestScriptConstraints(unittest.TestCase):
             self.assertTrue(path.exists(), name)
             self.assertEqual(path.read_text().splitlines()[0],
                              "#!/usr/bin/env python3", name)
-            self.assertTrue(os.access(path, os.X_OK),
-                            "%s is not executable; the hook depends on it" % name)
+            # Installed commands invoke the verified Python directly; no executable bit is needed.
 
     def test_stdlib_only_and_offline(self):
         for name in SCRIPTS:

@@ -1,28 +1,34 @@
 # Agent environment
 
-Shared global instructions and permission settings for Codex and Claude Code, with no machine-specific paths. To rebuild on another machine, open this repository in Codex or Claude Code and ask it to follow [SETUP.md](SETUP.md).
+Use [SETUP.md](SETUP.md) to install with the Claude or Codex agent already available.
+A shared questionnaire selects the host, Skill/plugin scope, Git mode, hooks and
+configuration changes. CLI-free preparation uses Python 3.10+ and no dependencies.
 
-## Permission model
+- [questions.json](questions.json): predefined questions and conditional choices.
+- [install.py](install.py): next question, dry-run plan and reviewed-plan application.
+- [HOSTS.md](HOSTS.md): all 46 Skill entrypoints and Claude adaptations.
+- [skill-compatibility.json](skill-compatibility.json): maintained classification/fixture map.
+- [profiles/manual-git.md](profiles/manual-git.md): explicit-request Git operation mode.
+- [codex](codex): optional Codex sandbox/policy templates and configuration merger.
+- [claude](claude): standalone Claude instructions and optional permission/hook templates.
 
-| Tier | What | How |
-| --- | --- | --- |
-| Run directly | Reads, builds and tests the sandbox permits | Sandbox profile `standard`; no escalation |
-| Automatic review | Ordinary task work: commits, pushes to working branches, PRs and Issues, anything unclassified | Escalation reviewed by `auto_review`; the user is not asked |
-| User approval | main/master pushes and merges, force pushes, releases, visibility/secret/protection settings, global or security configuration, work-losing local operations, messages to others | The agent asks first; Claude Code `ask` rules enforce the Git subset |
-| Never | Remote deletion of repositories, releases, branches, tags, secrets, workflow runs | Left to the user; Claude Code `deny` rules |
+Existing Skills and custom frontend-design are preserved. Third-party plugins,
+superpowers, official frontend-design, LSP and commit helpers are opt-in external
+features, absent from defaults. Skills are placed once; runtime packages contain
+bound helpers/hooks. Source hooks are inert until a real interpreter is probed.
+Source placement, host registration/trust and live runtime are reported separately.
 
-## Layout
+The selected manual-git profile limits Git/GitHub writes to explicit requests;
+automatic mode keeps the existing ordinary task policy and stricter safety gates.
+Claude uses its actual permission mode, and Codex uses its actual review mechanism.
+The installer does not rewrite security config, credentials or global Git identity.
 
-| Path | Installed as |
-| --- | --- |
-| [codex/AGENTS.md](codex/AGENTS.md) | `~/.codex/AGENTS.md`, shared by Codex and Claude Code |
-| [codex/standard-github-policy.md](codex/standard-github-policy.md) | `~/.codex/standard-github-policy.md`, the tier definitions |
-| [codex/host-read-policy.md](codex/host-read-policy.md) | `~/.codex/host-read-policy.md`, Git/GitHub read validators per OS (template) |
-| [codex/local-policy.example.md](codex/local-policy.example.md) | `~/.codex/local-policy.md`, language and personal exceptions (template) |
-| [codex/marketplace.example.json](codex/marketplace.example.json) | `~/.agents/plugins/marketplace.json` (Codex plugin registry) |
-| [codex/config.standard.toml](codex/config.standard.toml) | merged into `~/.codex/config.toml` by [codex/apply_config.py](codex/apply_config.py) |
-| [claude/CLAUDE.md](claude/CLAUDE.md) | `~/.claude/CLAUDE.md` |
-| [claude/settings.template.json](claude/settings.template.json) | merged into `~/.claude/settings.json` (permissions, hook, plugins) |
-| [claude/hooks/git-push-guard.sh](claude/hooks/git-push-guard.sh) | `~/.claude/hooks/git-push-guard.sh` |
+Offline verification:
 
-Skills come from [../skills](../skills) and plugins from [../plugins](../plugins); SETUP.md installs both.
+```text
+<python-3.10+> -B -m unittest discover -s environment/tests -v
+<python-3.10+> -B skills/growth-loop/tests/run.py
+<python-3.10+> -B -m unittest discover -s plugins/goal-checkpoint/tests -v
+```
+
+These checks do not establish Windows/Claude live delivery or multi-day results.

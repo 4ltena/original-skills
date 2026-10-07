@@ -1,24 +1,23 @@
 ---
 name: journey
-description: Reviews everything the learning loop has accumulated - skills, memory files, the nudge ledger - and forces a verdict on every stale skill. Run this weekly - either the person invokes it directly, or a schedule they set up in advance fires it for them; either way it is never a call the model decides to make mid-conversation. Deletion stays a human decision no matter which of those triggered the run.
+description: Reviews everything the learning loop has accumulated - skills, memory files, the nudge ledger - and forces a verdict on every stale skill. Run this weekly - either the person invokes it directly, or a schedule they set up in advance fires it for them; either way it is never a call the model decides to make mid-conversation. Only verified growth-loop-created Skills may be deleted automatically; other targets require explicit authorization.
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey:*)
 ---
 
-> Under Codex, `${CLAUDE_PLUGIN_ROOT}` is unset: use the plugin root, two
-> directories above this SKILL.md. `/growth-loop:<skill>` is `$growth-loop:<skill>` there.
+Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
+`gl-run`; never depend on shebang, PATH or an unset plugin variable.
 
 ## Gather
 
 Run all three and read them before deciding anything:
 
-- `"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey`: the full inventory of skills, memory
+- `<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey`: the full inventory of skills, memory
   files and the nudge ledger.
-- `"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --stale 60`: what is due, skills older
+- `<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --stale 60`: what is due, skills older
   than 60 days, before the 90-day STALE flag. It narrows the SKILLS section
   only; MEMORY and LEDGER print in full, so a memory file in this pass is not a
   stale item.
-- `"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --duplicates`: skill pairs ranked by
+- `<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --duplicates`: skill pairs ranked by
   description similarity, or `(none)`. Each pair is a candidate to open, not a
   verdict: it compares description text only, so it surfaces some unrelated
   pairs and cannot see an overlap phrased in dissimilar words.
@@ -28,10 +27,9 @@ Run all three and read them before deciding anything:
 Every **skill** `gl-journey --stale 60` surfaces gets exactly one verdict; no
 undecided leftovers.
 
-- **Delete**: it no longer applies, or should never have been written. Name it
-  and why; this is a recommendation in the report, not an action you take.
-  `/growth-loop:forget` is user-invoked only and you cannot invoke it, so let
-  the person run it. Do not delete the directory yourself.
+- **Delete**: it no longer applies, or should never have been written. Name the evidence and invoke `/growth-loop:forget` for a verified owned Skill
+  when automatic deletion is enabled. Other targets stay a recommendation.
+  Age alone is not deletion evidence. Never delete a directory directly.
 - **Verify and correct**: the knowledge might still hold but has not been
   checked lately. Check it against reality now, then route the fix through
   `/growth-loop:refine`.
@@ -49,13 +47,12 @@ with the better **What goes wrong** section, not the newer one: the dead ends it
 documents are the irreplaceable part. Open both files with `--locate` (below),
 not a path you assembled.
 
-A merge has two halves and you perform only the first. Fold what the loser has
-that the keeper lacks into the keeper through `/growth-loop:refine`. Then
-recommend the loser for deletion and stop. Do not delete it here: it would be a
-skill never located, shown or confirmed, which is what `forget` exists to
-prevent, and you cannot call it. Name the directory and let the person act.
-Until they do the merge is incomplete and the duplication is worse than before;
-say so in the report.
+Fold what the loser has that the keeper lacks into the keeper through
+`/growth-loop:refine`, then read the keeper and verify the useful knowledge was
+retained. Invoke `/growth-loop:forget` for an owned loser with the verified merge
+evidence. If the loser is unowned, modified or automatic deletion is disabled,
+report it as a recommendation and mark the merge incomplete. Never adopt it or
+delete it directly.
 
 ## Audit the description set
 
@@ -64,7 +61,7 @@ characters, which cuts the "use when …" clause the question below turns on. Th
 listing also prints clipped names and no paths, so resolve each one:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}"/bin/gl-journey --locate <name as the listing prints it>
+<verified-python> -X utf8 -B <plugin-root>/bin/gl-run journey --locate <name as the listing prints it>
 ```
 
 Paste the name exactly as printed, trailing `...` included: that suffix asks for
@@ -87,7 +84,7 @@ report as a weakness to watch; the next real miss is the evidence for a fix.
 ## Report
 
 Give a short verdict, not the inventory; the user can see the listing. Report
-the decisions: what is recommended for deletion and why, what got corrected,
+the decisions: what was deleted or recommended for deletion and why, what got corrected,
 what got kept and why, duplicates folded together with the loser named for
 deletion, and descriptions routed to refine for mis-targeting.
 
@@ -96,7 +93,7 @@ deletion, and descriptions routed to refine for mis-targeting.
 A run fired by a schedule the person set up follows every section above
 exactly, including performing a confirmed merge's fold through
 `/growth-loop:refine` without pausing: they approved that when they set up the
-schedule. `forget` is still unreachable, so every deletion lands in the report
-as a named recommendation, never as a directory removed. Because nobody is
-watching, send the report through rather than only printing it, so a wrong fold
-is caught from the notification and reverted.
+schedule. Owned-only deletion uses the same evidence and helper checks. Other targets
+stay named recommendations. Deliver a report through an already-authorized
+notification channel if available; otherwise report in this conversation.
+Scheduling a review does not authorize new messages to other people.
