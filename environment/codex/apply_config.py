@@ -1,4 +1,4 @@
-"""Merge config.standard.toml into a Codex config.toml.
+"""Merge the OS-specific config.standard.<macos|linux|windows>.toml into a Codex config.toml.
 
 Dry run by default: prints a unified diff. Pass --apply to write; the previous
 file is kept as config.toml.bak-<timestamp>. Standard library only (Python 3.8+).
@@ -11,7 +11,8 @@ Merge rules:
   your account owns;
 - legacy `sandbox_mode` and [sandbox_workspace_write] are removed, since they
   cannot be combined with `default_permissions`;
-- [windows] is skipped on other platforms; everything else is left untouched.
+- the template for the current OS is chosen automatically (--template overrides);
+  everything else is left untouched.
 """
 import argparse
 import difflib
@@ -65,7 +66,7 @@ def set_keys(lines, entries):
     return lines
 
 
-def merge(target, template, roots, windows):
+def merge(target, template, roots):
     template = ROOT_LINE.sub(lambda m: "".join(
         m.group(0).rstrip("\n").replace("<workspace-root>", r) + "\n" for r in roots), template)
     tpl_keys = {}
@@ -73,8 +74,6 @@ def merge(target, template, roots, windows):
         entries = [(key_of(l), l if l.endswith("\n") else l + "\n") for l in lines if key_of(l)]
         if entries or name:
             tpl_keys[name] = entries
-    if not windows:
-        tpl_keys.pop("windows", None)
 
     out, seen = [], set()
     for name, lines in split_tables(target):
@@ -120,18 +119,17 @@ def self_test():
     template = (
         'approval_policy = "on-request"\ndefault_permissions = "standard"\n\n[features]\n'
         'network_proxy = true\n\n[permissions.standard]\nextends = ":workspace"\n\n'
-        "[permissions.standard.workspace_roots]\n'<workspace-root>' = true\n\n[windows]\n"
-        'sandbox = "elevated"\n'
+        "[permissions.standard.workspace_roots]\n'<workspace-root>' = true\n"
     )
-    got = merge(target, template, [r"D:\work"], windows=False)
+    got = merge(target, template, [r"D:\work"])
     assert "sandbox_mode" not in got and "sandbox_workspace_write" not in got
     assert 'model = "x"' in got and 'default_permissions = "standard"' in got
     assert "memories = true" in got and "network_proxy = true" in got
     assert "old.example" in got and r"'D:\work' = true" in got
-    assert "[windows]" not in got and "[tui]" in got
+    assert "[tui]" in got
     assert got.index('default_permissions') < got.index("[features]")
-    assert merge(got, template, [r"D:\work"], windows=False) == got, "not idempotent"
-    moved = merge(got, template, [r"D:", r"D:"], windows=False)
+    assert merge(got, template, [r"D:\work"]) == got, "not idempotent"
+    moved = merge(got, template, [r"D:", r"D:"])
     assert r"'D:\work'" not in moved and r"'D:' = true" in moved and r"'D:' = true" in moved
     print("self-test ok; toml parse:", validate(got))
 
@@ -143,7 +141,8 @@ def main():
     ap.add_argument("--workspace-root", action="append",
                     help="directory you own that holds repositories (repeatable)")
     ap.add_argument("--config", default=os.path.join(home, "config.toml"))
-    ap.add_argument("--template", default=os.path.join(here, "config.standard.toml"))
+    system = {"darwin": "macos", "win32": "windows"}.get(sys.platform, "linux")
+    ap.add_argument("--template", default=os.path.join(here, "config.standard.%s.toml" % system))
     ap.add_argument("--apply", action="store_true", help="write the result (default: dry run)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
@@ -165,7 +164,7 @@ def main():
         with open(args.config, encoding="utf-8") as f:
             original = f.read()
 
-    merged = merge(original, template, roots, sys.platform == "win32")
+    merged = merge(original, template, roots)
     status = validate(merged)
     diff = "".join(difflib.unified_diff(original.splitlines(True), merged.splitlines(True),
                                         args.config, args.config + " (merged)"))

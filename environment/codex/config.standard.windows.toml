@@ -1,4 +1,5 @@
-# Merge into $CODEX_HOME/config.toml (default ~/.codex/config.toml).
+# Merge into $CODEX_HOME/config.toml (default ~/.codex/config.toml) with apply_config.py,
+# which picks the file for the current OS (config.standard.<macos|linux|windows>.toml).
 # Replace <workspace-root> with the directory that holds your repositories.
 # Remove any `sandbox_mode` / `[sandbox_workspace_write]` entries: they cannot be combined with
 # `default_permissions`. Permission profiles are a Codex beta feature; recheck after upgrades.
@@ -19,9 +20,28 @@ extends = ":workspace"
 
 # Do not add "deny" entries here: a denied-read path makes Codex run even
 # approved escalations inside the sandbox (no ps, no loopback, no setuid tools).
-# Keep secrets out of reach by choosing a workspace root that is not your home.
+# Keep secrets out of reach by choosing a workspace root that is not your home;
+# the "read" entries below block unreviewed writes from sessions started in ~ or ~/.codex.
 [permissions.standard.filesystem]
 "~/.cargo" = "write"
+"~/.ssh" = "read"
+"~/.gnupg" = "read"
+"~/.aws" = "read"
+"~/.gitconfig" = "read"
+"~/.claude" = "read"
+"~/.agents" = "read"
+"~/.codex/config.toml" = "read"
+"~/.codex/hooks.json" = "read"
+"~/.codex/rules" = "read"
+"~/.codex/hooks" = "read"
+"~/.codex/skills" = "read"
+"~/.codex/plugins" = "read"
+"~/.codex/agents" = "read"
+"~/.codex/original-skills" = "read"
+# PowerShell profiles and the Startup folder.
+"~/Documents/PowerShell" = "read"
+"~/Documents/WindowsPowerShell" = "read"
+"~/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup" = "read"
 
 [permissions.standard.network]
 enabled = true
@@ -41,6 +61,6 @@ enabled = true
 "files.pythonhosted.org" = "allow"
 "registry.npmjs.org" = "allow"
 
-# Windows only: run sandboxed commands as a dedicated user.
+# Run sandboxed commands as a dedicated user.
 [windows]
 sandbox = "elevated"

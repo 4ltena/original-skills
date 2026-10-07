@@ -115,6 +115,34 @@ def skill_selection(answers, available):
     return sorted(required), sorted(required - selected)
 
 
+# Pinned readers ship with the source machine's tool path/version; rebind them to this machine.
+READERS = {("git-read-inspection", "git-read"): ("git", "GIT"), ("git-read-inspection", "git-read-windows.py"): ("git", "GIT"),
+           ("gh-read-inspection", "gh-read"): ("gh", "GH"), ("gh-read-inspection", "gh-read-windows.py"): ("gh", "GH")}
+
+
+def bind_reader(content, tool, const, windows):
+    """Return (content, None) bound to the local tool, or (content, reason) when it cannot be bound."""
+    path = shutil.which(tool)
+    if not path:
+        return content, tool + " not found; reads stay blocked until it is installed and the plan is rebuilt"
+    try:
+        out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        out = ""
+    version = re.match(tool + r" version \d+\.\d+\.\d+", out.strip())
+    if not version:
+        return content, tool + " version could not be read; reads stay blocked"
+    text = content.decode("utf-8")
+    text = re.sub(r"(?m)^" + const + r" = r?\".*\"$", lambda _: const + " = " + json.dumps(path), text, count=1)
+    if not windows:
+        text = re.sub(r'(?m)^EXPECTED_VERSION = ".*"$', lambda _: "EXPECTED_VERSION = " + json.dumps(version[0]), text, count=1)
+        folder = os.path.dirname(path)
+        base = "/usr/bin:/bin:/usr/sbin:/sbin"
+        if folder not in base.split(":"):
+            text = text.replace('"PATH": "' + base + '"', '"PATH": "' + base + ":" + folder + '"', 1)
+    return text.encode("utf-8"), None
+
+
 def files_in(root):
     for path in sorted(root.rglob("*")):
         if path.is_symlink():
@@ -190,6 +218,12 @@ def plan(answers, home, executable=None):
                     if name == 'goal-checkpoint':
                         content = content.replace(b'../../scripts/host_adapter.py', str(runtime_root / 'goal-checkpoint/scripts/host_adapter.py').encode())
                         content = content.replace(b'../../scripts/checkpoint.py', str(runtime_root / 'goal-checkpoint/scripts/checkpoint.py').encode())
+                reader = READERS.get((name, source.name))
+                windows = source.name.endswith("-windows.py")
+                if reader and windows == (binding["platform"] == "win32"):
+                    content, reason = bind_reader(content, *reader, windows)
+                    if reason and {"host": host, "reader": name, "state": reason} not in registrations:
+                        registrations.append({"host": host, "reader": name, "state": reason})
                 add(target / source.relative_to(available[name]), content)
         for source in (ENV / "runtime.py", ENV / "scripts/git_guard.py"):
             add(runtime_root / source.name, source.read_bytes())
@@ -254,6 +288,15 @@ def plan(answers, home, executable=None):
                     rules += 'prefix_rule(pattern=["gh", ' + json.dumps(op) + '], decision="prompt")\n'
                 target = root / "rules/original-skills-manual-git.rules" if answers["settings"] == "apply-selected" else runtime_root / "manual-git.rules.candidate"
                 add(target, rules.encode())
+            readers = [(tool, skill) for tool, skill in (("git", "git-read-inspection"), ("gh", "gh-read-inspection")) if skill in selected]
+            if host == "codex" and readers:
+                # Only the exact placed validators skip review; raw git/gh stay on the normal approval path.
+                rules = "# Validator-bounded reads placed by original-skills.\n"
+                for tool, skill in readers:
+                    script = skill_root / skill / "scripts" / (tool + "-read" + suffix)
+                    rules += "prefix_rule(pattern=" + json.dumps([binding["executable"], "-X", "utf8", "-B", str(script)]) + ', decision="allow")\n'
+                target = root / "rules/original-skills-readers.rules" if answers["settings"] == "apply-selected" else runtime_root / "readers.rules.candidate"
+                add(target, rules.encode())
         if answers["settings"] != "skills-only":
             settings = settings_for(host, answers, runtime_root, binding, data_paths)
             candidate = root / "original-skills-settings.candidate.json"
@@ -273,8 +316,15 @@ def plan(answers, home, executable=None):
                     existing = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
                     add(target, (json.dumps(merge_settings(existing, settings), ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
                 else:
-                    # Codex hook trust and full sandbox/security TOML are intentionally a separate reviewed operation.
-                    registrations.append({"host": host, "state": "candidate hooks require supported plugin registration and trust; config.toml not changed"})
+                    # Codex loads global hooks from hooks.json; trust stays a user step. Sandbox TOML is apply_config.py's job.
+                    if settings["hooks"]:
+                        target = root / "hooks.json"
+                        existing = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+                        merged = merge_settings(existing, {"hooks": settings["hooks"]})
+                        if "permissions" not in existing:
+                            merged.pop("permissions")
+                        add(target, (json.dumps(merged, ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
+                    registrations.append({"host": host, "state": "hooks merged into hooks.json; review and trust them via /hooks. config.toml not changed (use codex/apply_config.py)"})
             else:
                 add(root / (instructions + ".candidate"), proposed.encode())
     result = {"version": 1, "answers": answers, "home": str(home), "scope": str(scope),

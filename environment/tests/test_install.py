@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -65,8 +66,9 @@ class InstallTests(unittest.TestCase):
         with patch.object(subprocess, 'run', wraps=subprocess.run) as run:
             result = install.plan(answers(skills='all', plugins=['workflow', 'growth-loop', 'goal-checkpoint'],
                 auto_delete='yes', checkpoint='enabled'), self.home)
-            # The only external process is the explicit Python probe; no agent CLI.
-            self.assertTrue(all(Path(call.args[0][0]).resolve() == Path(sys.executable).resolve() for call in run.call_args_list))
+            # External processes are the Python probe and git/gh version reads for reader binding; no agent CLI.
+            allowed = {Path(sys.executable).resolve(), *(Path(shutil.which(t)).resolve() for t in ('git', 'gh') if shutil.which(t))}
+            self.assertTrue(all(Path(call.args[0][0]).resolve() in allowed for call in run.call_args_list))
         self.assertEqual(len(result['selected_skills']), 44)
         self.assertIn(str(folder), result['preserved'])
         self.assertFalse((self.home / '.claude/settings.json').exists())
@@ -152,6 +154,31 @@ class InstallTests(unittest.TestCase):
         rules = (self.home / '.codex/rules/original-skills-manual-git.rules').read_text()
         self.assertIn('["git", "commit"]', rules)
         self.assertFalse((self.home / '.codex/config.toml').exists())
+
+    def test_codex_on_another_machine_binds_readers_hooks_and_rules(self):
+        bin_dir = self.home / 'bin'; bin_dir.mkdir()
+        for tool, version in (('git', 'git version 2.39.5'), ('gh', 'gh version 2.40.0 (2024-01-01)')):
+            (bin_dir / tool).write_text('#!/bin/sh\necho "' + version + '"\n'); (bin_dir / tool).chmod(0o755)
+        with patch.dict(os.environ, {'PATH': str(bin_dir) + ':/usr/bin:/bin'}):
+            result = install.plan(answers(host='codex', skills='development', plugins=['goal-checkpoint'],
+                checkpoint='enabled', git_mode='automatic', settings='apply-selected'), self.home)
+            install.apply(result, result['plan_id'])
+        reader = (self.home / '.codex/skills/git-read-inspection/scripts/git-read').read_text()
+        self.assertIn('GIT = ' + json.dumps(str(bin_dir / 'git')), reader)
+        self.assertIn('EXPECTED_VERSION = "git version 2.39.5"', reader)
+        self.assertIn('EXPECTED_VERSION = "gh version 2.40.0"',
+                      (self.home / '.codex/skills/gh-read-inspection/scripts/gh-read').read_text())
+        self.assertIn('Stop', json.loads((self.home / '.codex/hooks.json').read_text())['hooks'])
+        rules = (self.home / '.codex/rules/original-skills-readers.rules').read_text()
+        self.assertIn(str(self.home / '.codex/skills/git-read-inspection/scripts/git-read'), rules)
+        self.assertIn('decision="allow"', rules)
+
+    def test_missing_reader_tool_is_reported_not_fatal(self):
+        empty = self.home / 'empty'; empty.mkdir()
+        with patch.object(install.shutil, 'which', return_value=None):
+            result = install.plan(answers(host='codex', skills='development'), self.home)
+        self.assertTrue(any(r.get('reader') == 'gh-read-inspection' and 'not found' in r['state']
+                            for r in result['registrations']))
 
     def test_invalid_probe_and_shell_paths(self):
         for executable in ('C:/Users/Test/AppData/Local/Microsoft/WindowsApps/python3.exe', str(self.home / 'missing-python')):

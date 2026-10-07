@@ -1,0 +1,65 @@
+# Merge into $CODEX_HOME/config.toml (default ~/.codex/config.toml) with apply_config.py,
+# which picks the file for the current OS (config.standard.<macos|linux|windows>.toml).
+# Replace <workspace-root> with the directory that holds your repositories.
+# Remove any `sandbox_mode` / `[sandbox_workspace_write]` entries: they cannot be combined with
+# `default_permissions`. Permission profiles are a Codex beta feature; recheck after upgrades.
+
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+default_permissions = "standard"
+
+[features]
+network_proxy = true
+
+[permissions.standard]
+description = "Workspace access with package and GitHub network access and automatic approval review"
+extends = ":workspace"
+
+[permissions.standard.workspace_roots]
+'<workspace-root>' = true
+
+# Do not add "deny" entries here: a denied-read path makes Codex run even
+# approved escalations inside the sandbox (no ps, no loopback, no setuid tools).
+# Keep secrets out of reach by choosing a workspace root that is not your home;
+# the "read" entries below block unreviewed writes from sessions started in ~ or ~/.codex.
+[permissions.standard.filesystem]
+"~/.cargo" = "write"
+"~/.ssh" = "read"
+"~/.gnupg" = "read"
+"~/.aws" = "read"
+"~/.gitconfig" = "read"
+"~/.claude" = "read"
+"~/.agents" = "read"
+"~/.codex/config.toml" = "read"
+"~/.codex/hooks.json" = "read"
+"~/.codex/rules" = "read"
+"~/.codex/hooks" = "read"
+"~/.codex/skills" = "read"
+"~/.codex/plugins" = "read"
+"~/.codex/agents" = "read"
+"~/.codex/original-skills" = "read"
+# Shell startup and user services.
+"~/.bashrc" = "read"
+"~/.profile" = "read"
+"~/.bash_profile" = "read"
+"~/.zshrc" = "read"
+"~/.config/systemd/user" = "read"
+"~/.config/autostart" = "read"
+
+[permissions.standard.network]
+enabled = true
+
+[permissions.standard.network.domains]
+"github.com" = "allow"
+"api.github.com" = "allow"
+"codeload.github.com" = "allow"
+"objects.githubusercontent.com" = "allow"
+"raw.githubusercontent.com" = "allow"
+"cli.github.com" = "allow"
+"crates.io" = "allow"
+"index.crates.io" = "allow"
+"static.crates.io" = "allow"
+"static.rust-lang.org" = "allow"
+"pypi.org" = "allow"
+"files.pythonhosted.org" = "allow"
+"registry.npmjs.org" = "allow"

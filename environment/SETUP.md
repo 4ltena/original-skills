@@ -79,7 +79,10 @@ modified by this helper.
 
 Skill files live once in the selected host's skills directory. Runtime packages in
 `<host-home>/original-skills/` contain hooks/helpers, with no duplicate Skill tree.
-Bindings record the probed executable and explicit state/Skill roots. Generated
+Bindings record the probed executable and explicit state/Skill roots. The pinned
+git/gh readers are rebound to this machine's tool path and version at plan time; a
+missing tool is reported and its reads stay blocked until it is installed and the
+plan is rebuilt. Codex also gets an allow rule for exactly those placed readers. Generated
 Claude hooks use an executable plus an argument array, bypassing shell quoting on
 every platform. Codex Windows shell-form commands quote spaces/Unicode and reject
 expansion characters that cannot be represented. Source hook templates are inert
@@ -118,10 +121,9 @@ installed Skills from the actual host catalog or read their SKILL.md in conversa
 hook activation from a file copy. Use the selected host's supported source/plugin
 registration and trust UI only when available and within the approved plan. Claude
 settings hooks can use the prepared runtime directly; do not also register the same
-hook package and double-fire it. On Codex register the generated hooks-only runtime
-through its supported local marketplace/plugin flow, then trust the actual hooks.
-Use the installed directory as the source and a reviewed marketplace entry. Never
-edit plugin caches. Workflow procedures are already standalone Skills and need no
+hook package and double-fire it. On Codex, apply-selected merges the hooks into
+`<codex-home>/hooks.json`; trust them through `/hooks` and do not also register the
+runtime as a plugin. Never edit plugin caches. Workflow procedures are already standalone Skills and need no
 additional plugin registration in this route.
 
 For goal-checkpoint, native Codex creation hooks can auto-register after successful
@@ -137,4 +139,6 @@ smokes, host registration/trust and live delivery separately. Missing runtime
 capabilities remain unverified. Windows real-machine, paid model E2E, three-hour
 live notification and multi-day development evidence must never be inferred from
 an offline fixture. Optional full Codex config merging remains in
-[codex/apply_config.py](codex/apply_config.py); review its exact diff separately.
+[codex/apply_config.py](codex/apply_config.py), which picks
+`codex/config.standard.<macos|linux|windows>.toml` for the current OS; review its
+exact diff separately.
