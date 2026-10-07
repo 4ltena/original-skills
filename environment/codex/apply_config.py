@@ -26,8 +26,7 @@ KEY = re.compile(r"""^\s*("[^"]*"|'[^']*'|[A-Za-z0-9_.-]+)\s*=""")
 REMOVED_TABLES = {"sandbox_workspace_write"}
 REMOVED_KEYS = {"sandbox_mode"}
 REPLACED_TABLES = {"permissions.standard.workspace_roots"}
-ROOT_LINE = re.compile(r"^.*<workspace-root>.*
-?", re.M)
+ROOT_LINE = re.compile(r"^.*<workspace-root>.*\n?", re.M)
 
 
 def split_tables(text):
@@ -68,9 +67,7 @@ def set_keys(lines, entries):
 
 def merge(target, template, roots, windows):
     template = ROOT_LINE.sub(lambda m: "".join(
-        m.group(0).rstrip("
-").replace("<workspace-root>", r) + "
-" for r in roots), template)
+        m.group(0).rstrip("\n").replace("<workspace-root>", r) + "\n" for r in roots), template)
     tpl_keys = {}
     for name, lines in split_tables(template):
         entries = [(key_of(l), l if l.endswith("\n") else l + "\n") for l in lines if key_of(l)]
@@ -86,8 +83,8 @@ def merge(target, template, roots, windows):
         if name is None:
             lines = [l for l in lines if key_of(l) not in REMOVED_KEYS]
         if name in REPLACED_TABLES and name in tpl_keys:
-            lines = lines[:1] + [e for _, e in tpl_keys[name]] + ["
-"]
+            blanks = len(lines) - len("".join(lines).rstrip("\n").splitlines(True))
+            lines = lines[:1] + [e for _, e in tpl_keys[name]] + ["\n"] * blanks
             seen.add(name)
         elif name in tpl_keys:
             lines = set_keys(lines, tpl_keys[name])
