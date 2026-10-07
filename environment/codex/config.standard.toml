@@ -17,9 +17,11 @@ extends = ":workspace"
 [permissions.standard.workspace_roots]
 '<workspace-root>' = true
 
+# Do not add "deny" entries here: a denied-read path makes Codex run even
+# approved escalations inside the sandbox (no ps, no loopback, no setuid tools).
+# Keep secrets out of reach by choosing a workspace root that is not your home.
 [permissions.standard.filesystem]
 "~/.cargo" = "write"
-"~/.ssh" = "deny"
 
 [permissions.standard.network]
 enabled = true

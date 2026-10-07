@@ -68,6 +68,14 @@ class PortabilityTests(unittest.TestCase):
         self.assertNotEqual(refused.returncode, 0)
         self.assertEqual((manual / 'SKILL.md').read_text(), 'manual')
 
+    def test_codex_config_rejects_home_workspace_root(self):
+        # A home root needs deny-read entries, which keep escalations sandboxed.
+        script = Path(__file__).resolve().parents[1] / 'codex/apply_config.py'
+        run = subprocess.run([sys.executable, str(script), '--workspace-root', str(Path.home())],
+                             capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('home directory', run.stderr)
+
     def test_agent_watchdog_without_either_cli(self):
         script = self.root / 'skills/agent-watchdog/scripts/recovery.py'
         value = {'attempts':1,'failure_kind':'unknown','repeatable':True,'user_stopped':False,'uncertain_effects':False}

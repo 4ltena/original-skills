@@ -155,6 +155,8 @@ def main():
     if any("'" in r for r in args.workspace_root):
         ap.error("--workspace-root must not contain a single quote")
     roots = [os.path.abspath(r) for r in args.workspace_root]
+    if any(os.path.realpath(r) == os.path.realpath(os.path.expanduser("~")) for r in roots):
+        ap.error("--workspace-root must not be your home directory; use the folder holding your repositories")
 
     with open(args.template, encoding="utf-8") as f:
         template = f.read()
