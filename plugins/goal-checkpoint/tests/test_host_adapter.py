@@ -5,6 +5,8 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import concurrent.futures
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
@@ -68,6 +70,67 @@ class HostAdapterTests(unittest.TestCase):
         self.assertEqual(self.event('SessionStart', 10813, source='compact'), {})
         resumed = self.event('SessionStart', 10814, source='resume')
         self.assertIn('additionalContext', resumed['hookSpecificOutput'])
+
+    def receipt(self):
+        return json.loads((self.data / 'goal-checkpoint' / 'hook-observations.json').read_text())
+
+    def test_observation_receipt_is_bounded_content_free_and_unknown_events_do_not_write(self):
+        secret = 'prompt/session/cwd must not persist'
+        self.assertEqual(self.event('UnknownEvent', payload=secret), {})
+        self.assertFalse((self.data / 'goal-checkpoint').exists())
+        for index in range(34):
+            self.event('SessionEnd', now=100 + index, payload=secret, cwd=secret)
+        receipt = self.receipt()
+        self.assertEqual(receipt['version'], 1)
+        self.assertEqual(len(receipt['observations']), 32)
+        self.assertTrue(all(set(item) == {'event', 'at', 'elapsed_ms', 'outcome'} for item in receipt['observations']))
+        self.assertNotIn(secret, json.dumps(receipt))
+        self.assertLessEqual(len(json.dumps(receipt).encode()), adapter.core.MAX_STATE)
+
+    def test_claude_unsupported_interrupt_has_no_state_or_observation(self):
+        self.assertEqual(self.event('Interrupt'), {})
+        self.assertFalse((self.data / 'goal-checkpoint').exists())
+
+    def test_claude_session_end_records_without_session_or_core_state(self):
+        self.assertEqual(adapter.claude_hook(str(self.data), {'hook_event_name': 'SessionEnd'}, 10), {})
+        receipt = self.receipt()
+        self.assertEqual(receipt['observations'][-1]['event'], 'SessionEnd')
+        self.assertEqual(list((self.data / 'goal-checkpoint').glob('*.index.json')), [])
+
+    def test_observation_normalizes_corrupted_extra_fields(self):
+        secret = 'cwd/session/prompt must be removed'
+        with adapter.core.Store(str(self.data)) as store:
+            store.write('hook-observations.json', {
+                'version': 1, 'payload': secret,
+                'observations': [{'event': 'SessionStart', 'at': 1, 'elapsed_ms': 2, 'outcome': 'ok', 'cwd': secret}],
+            })
+        self.assertEqual(adapter.claude_hook(str(self.data), {'hook_event_name': 'SessionEnd'}, 10), {})
+        receipt = self.receipt()
+        self.assertEqual(set(receipt), {'version', 'observations'})
+        self.assertTrue(all(set(item) == {'event', 'at', 'elapsed_ms', 'outcome'} for item in receipt['observations']))
+        self.assertNotIn(secret, json.dumps(receipt))
+
+    def test_observation_failure_does_not_change_hook_result(self):
+        with patch.object(adapter.core.Store, 'write', side_effect=PermissionError('denied')):
+            self.assertEqual(self.event('SessionEnd'), {})
+        self.assertFalse((self.data / 'goal-checkpoint' / 'hook-observations.json').exists())
+
+    def test_observation_records_known_hook_errors(self):
+        with self.assertRaises(adapter.core.StateError):
+            adapter.claude_hook(str(self.data), {'hook_event_name': 'Stop', 'session_id': ''}, 10)
+        receipt = self.receipt()
+        self.assertEqual(receipt['observations'][-1]['event'], 'Stop')
+        self.assertEqual(receipt['observations'][-1]['outcome'], 'error')
+
+    def test_observation_fixed_lock_preserves_two_sessions(self):
+        events = [
+            {'hook_event_name': 'SessionEnd', 'session_id': 'session-a', 'cwd': str(self.workspace)},
+            {'hook_event_name': 'SessionEnd', 'session_id': 'session-b', 'cwd': str(self.workspace)},
+        ]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            outputs = list(pool.map(lambda event: adapter.claude_hook(str(self.data), event, 10), events))
+        self.assertEqual(outputs, [{}, {}])
+        self.assertEqual(len(self.receipt()['observations']), 2)
 
 
 if __name__ == '__main__':

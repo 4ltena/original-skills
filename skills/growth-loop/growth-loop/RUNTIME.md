@@ -17,6 +17,20 @@ reports transcript search locations. These operations are offline. `nudge` accep
 the host event on stdin; the generated hook definitions call the verified Python.
 Plugin registration/trust and live delivery are separate from source placement.
 
+## Evaluation records
+
+The source checkout's `e2e/run_e2e.py prepare` builds a temporary guided-install
+home/work fixture for each case through `environment.install`; `request` prepares
+a matching native-host or common-runner handoff; `grade-case` inspects declared
+fixture artifacts, while `grade` scores supplied records offline. It does not ship
+in this runtime and none of its stages invokes a model, CLI, auth store, or
+weakens permissions. A passing record needs an explicit supported check with
+artifact or trace evidence and an observed `invoked_skills` array. `null` means
+unknown, while `[]` means observed none. Compare only equal fixture/runner/task
+conditions across `none`, `current`, and `improved`; source revision identifies a
+variant and is not a comparison condition. Missing or unknown metrics are never
+zero or a pass.
+
 For managed Skills, `owned create <slug>` accepts a JSON object mapping relative
 paths to UTF-8 contents through stdin. Include `SKILL.md` with matching name and
 description. `owned status <slug>` returns the generation and verifies contents.

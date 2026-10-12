@@ -64,6 +64,59 @@ class CheckpointTests(unittest.TestCase):
         self.assertIn("hookSpecificOutput", self.event(now=21800, turn_id="turn-2"))
         self.assertEqual(self.ack(now=22000)["stalled_count"], 2)
 
+    def test_ack_records_bounded_review_and_legacy_fields(self):
+        self.event()
+        state = self.ack(now=11000, reason="criterion unchanged", next_action="implement serializer",
+                         previous_action_result="CSS work did not change criterion")
+        review = state["reviews"][-1]
+        self.assertEqual(review["verdict"], "stalled")
+        self.assertEqual(review["reason"], "criterion unchanged")
+        self.assertEqual(review["before"]["criteria"], self.details["criteria"])
+        self.op("review", now=11001)
+        legacy = self.ack(now=11002)["reviews"][-1]
+        self.assertEqual(legacy["reason"], "unknown")
+        self.assertEqual(legacy["next_action"], "unknown")
+        self.assertEqual(legacy["previous_action_result"], "unknown")
+
+    def test_review_history_prunes_and_preserves_large_valid_baseline(self):
+        large = "x" * 2048
+        self.details.update(milestone=large, criteria=large, evidence=large)
+        self.op("baseline", generation=self.start["generation"], milestone=large, criteria=large, evidence=large)
+        for index in range(6):
+            self.op("review", now=200 + index * 2)
+            self.ack(now=201 + index * 2, reason="r" * 2048, next_action="n" * 2048,
+                     previous_action_result="p" * 2048)
+        state = self.op("status")
+        self.assertLessEqual(len(json.dumps(state, ensure_ascii=False).encode()), cp.MAX_STATE)
+        self.assertLessEqual(len(state["reviews"]), cp.MAX_REVIEWS)
+        self.assertEqual(state["criteria"], large)
+
+    def test_ack_write_failure_keeps_disk_pending_and_history(self):
+        self.event()
+        before = self.op("status")
+        self.assertNotIn("reviews", before)
+        with patch.object(cp.Store, "save", side_effect=PermissionError("denied")):
+            with self.assertRaises(PermissionError):
+                self.ack(reason="would be recorded")
+        after = self.op("status")
+        self.assertEqual(after["pending"], before["pending"])
+        self.assertNotIn("reviews", after)
+
+    def test_hostile_review_history_is_rejected_without_acknowledging(self):
+        path = self.state_path()
+        state = json.loads(path.read_text())
+        state["reviews"] = [{"checkpoint_id": "not-a-token"}]
+        path.write_text(json.dumps(state))
+        with self.assertRaises(cp.StateError):
+            self.op("status")
+
+    def test_oversized_review_history_is_rejected_without_recovery_write(self):
+        path = self.state_path()
+        path.write_text("{" + '"reviews":"' + ("x" * cp.MAX_STATE) + '"}')
+        with self.assertRaises(cp.StateError):
+            self.op("status")
+        self.assertGreater(path.stat().st_size, cp.MAX_STATE)
+
     def test_goal_creation_auto_registers_once_without_goal_text(self):
         secret = "private goal text must not be saved"
         event = dict(hook_event_name="PostToolUse", session_id="chat-a", cwd=str(self.workspace),

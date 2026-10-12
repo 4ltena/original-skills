@@ -91,6 +91,12 @@ the [Claude hook reference](https://code.claude.com/docs/en/hooks#exec-form-and-
 documents the required exec form. Older unsupported hosts need manual operation
 or an explicitly reviewed update, without a guessed shell fallback.
 
+When rebuilding a plan after placement, existing runtime helpers remain unchanged;
+matching local bindings can still supply hooks for `apply-selected`. A mismatched
+interpreter, host or root requires an explicit runtime refresh. Shipped reader
+scripts can be rebound with a reviewed diff and backup when only their tool path,
+version and corresponding PATH binding differ. Customized reader bodies are preserved.
+
 ## 3. Apply only the reviewed plan
 
 After the user approves its exact effects, pass the generated plan on stdin:
@@ -142,3 +148,26 @@ an offline fixture. Optional full Codex config merging remains in
 [codex/apply_config.py](codex/apply_config.py), which picks
 `codex/config.standard.<macos|linux|windows>.toml` for the current OS; review its
 exact diff separately.
+
+## 5. Inspect a placement without changing it
+
+Use the installed `original-skills/doctor.py` with an explicit intended home and
+host. It only reads the selected scope by default and prints JSON; it creates no
+directories, starts no host or hook, and does not use a shell. It reports the
+reviewed source identity, receipt projection hashes, binding declaration, catalog
+duplicates, candidate versus installed hook declarations, and independent
+unknowns for host version, user trust, and runtime delivery.
+
+```text
+<verified-python> -X utf8 -B <host-home>/original-skills/doctor.py --host claude --home <target-home>
+```
+
+Pass `--project <absolute-project>` only for a reviewed project-scope placement.
+`--plan` or `--answers` can confirm the requested selection but conflicting input
+is rejected. An optional `--probe-python <absolute-python>` executes only that
+explicit interpreter to check it against the recorded binding; it is never part of
+the default diagnosis. Receipt absence, an old installation, malformed telemetry,
+or a copied Windows representation remain `unknown`/unverified rather than proof
+of activation. Even a structurally valid checkpoint observation file has an
+unverified origin and does not prove delivery or trust. The diagnostic summarizes checkpoint observations without emitting
+hook input, conversation text, settings, credentials, or token data.

@@ -2,17 +2,18 @@
 
 Personal skills and plugin sources.
 
-To set up Codex and Claude Code from this repository on a new machine, start with [environment/README.md](environment/README.md). The agent asks predefined questions to select the installation scope; CLI-free preparation, manual-git and ownership-only growth-loop deletion are supported.
+To set up Codex and Claude Code from this repository on a new machine, start with [environment/README.md](environment/README.md). The agent asks predefined questions to select the installation scope; CLI-free preparation, manual-git and ownership-only growth-loop deletion are supported. After a reviewed placement, the installed read-only [doctor](environment/SETUP.md#5-inspect-a-placement-without-changing-it) reports receipt/source drift and configuration evidence without treating file placement as host trust or live runtime success.
 
 | Component | Location |
 | --- | --- |
 | Agent environment (instructions, permissions, setup) | [environment](environment) |
-| Workflow skill | [skills/workflow](skills/workflow) |
+| Workflow skill | [plugins/workflow/skills/workflow](plugins/workflow/skills/workflow) |
 | Workflow plugin | [plugins/workflow](plugins/workflow) |
 | Goal checkpoint plugin | [plugins/goal-checkpoint](plugins/goal-checkpoint) |
 | Code inspection | [skills/code-inspection](skills/code-inspection) |
 | Read evidence | [skills/read-evidence](skills/read-evidence) |
 | Project handoff | [skills/project-handoff](skills/project-handoff) |
+| Skill routing and comparison evaluations | [evaluations](evaluations) |
 | Web source structure | [skills/web-source-structure](skills/web-source-structure) |
 | Account catalog and broker | [skills/site-account-catalog](skills/site-account-catalog) |
 

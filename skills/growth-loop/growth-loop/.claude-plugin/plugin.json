@@ -1,7 +1,7 @@
 {
   "name": "growth-loop",
   "displayName": "growth-loop",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A Claude/Codex learning loop: distil insights into Skills, refine verified routes, nudge after work, recall prior reasoning and model explicit preferences, with ownership-scoped curation.",
   "author": {
     "name": "4ltena",

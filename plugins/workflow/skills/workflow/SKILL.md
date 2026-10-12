@@ -1,9 +1,9 @@
 ---
 name: workflow
-description: Coordinate approved multi-stage software changes or resume unfinished implementation, with a fixed completion bar, bounded review and verification, and a final report.
+description: Implement approved multi-stage changes or resume incomplete milestones. Use for execution with bounded review and verification; skip single routine fixes and planning-only requests.
 metadata:
   author: 4ltena
-  version: '2.0'
+  version: '2.1'
 ---
 
 # Development workflow

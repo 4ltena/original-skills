@@ -21,12 +21,16 @@ Use the installed Skill and scripts/host_adapter.py with --host claude|codex,
 the verified Python and local binding.json. Operations are enable/status/review/
 baseline/ack/disable/resume. Pass bounded non-secret JSON on stdin. Pending review
 is not milestone completion; stop instructions and terminal goals never restart
-work. A Stop hook continues a turn at most once; acknowledgement records a review.
+work. A Stop hook continues a turn at most once; acknowledgement records a review
+with bounded reason, next action and previous-action result (legacy values are
+`unknown`).
 
 The shared core retains private files, nonblocking locks and atomic replacement.
 Windows validates owner DACLs and rejects reparse points/hardlinks; POSIX uses
 private mode/owner checks and directory FDs. Hook output retains no prompt/tool
-content. See [Skill](skills/goal-checkpoint/SKILL.md) for baseline and recovery.
+content. The adapter's diagnostic receipt retains only bounded event name/time/
+elapsed/outcome observations; it does not establish host trust or live delivery.
+See [Skill](skills/goal-checkpoint/SKILL.md) for baseline and recovery.
 
 Offline verification from the repository root:
 

@@ -38,6 +38,68 @@ class InstallTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_candidates_then_apply_selected_reuses_runtime_and_enables_hooks(self):
+        for host in ('claude', 'codex'):
+            value = answers(host=host, plugins=['growth-loop', 'goal-checkpoint'],
+                            auto_delete='no', checkpoint='enabled')
+            first = install.plan(value, self.home)
+            install.apply(first, first['plan_id'])
+            root = self.home / ('.claude' if host == 'claude' else '.codex')
+            helper = root / 'original-skills/goal-checkpoint/scripts/host_adapter.py'
+            original = helper.read_bytes()
+            second = install.plan({**value, 'settings': 'apply-selected', 'auto_delete': 'yes'}, self.home)
+            install.apply(second, second['plan_id'])
+            target = root / ('settings.json' if host == 'claude' else 'hooks.json')
+            hooks = json.loads(target.read_text())['hooks']
+            self.assertIn('SessionStart', hooks)
+            self.assertEqual(len(hooks['Stop']), 2)
+            self.assertEqual(helper.read_bytes(), original)
+            self.assertTrue(json.loads((root / 'original-skills/growth-loop/binding.json').read_text())['auto_delete'])
+            third = install.plan({**value, 'settings': 'apply-selected', 'auto_delete': 'yes'}, self.home)
+            install.apply(third, third['plan_id'])
+            self.assertEqual(json.loads(target.read_text())['hooks'], hooks)
+            local_binding = root / 'original-skills/goal-checkpoint/binding.json'
+            changed = json.loads(local_binding.read_text()); changed['data'] = str(self.home / 'other-data')
+            local_binding.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(ValueError, 'existing runtime binding differs'):
+                install.plan(value, self.home)
+
+    def test_receipt_survives_an_identical_replan_without_claiming_runtime(self):
+        value = answers(host='codex', plugins=['goal-checkpoint'], checkpoint='enabled', settings='apply-selected')
+        first = install.plan(value, self.home)
+        install.apply(first, first['plan_id'])
+        receipt = self.home / '.codex/original-skills/install-receipt.json'
+        before = json.loads(receipt.read_text())
+        second = install.plan(value, self.home)
+        install.apply(second, second['plan_id'])
+        after = json.loads(receipt.read_text())
+        self.assertEqual(before['source'], after['source'])
+        self.assertEqual(before['projection']['files'], after['projection']['files'])
+        self.assertEqual(after['claims'], {'host_version': 'unknown', 'trust': 'unknown', 'runtime': 'unknown'})
+        self.assertEqual(after['hooks']['installed']['status'], 'declared')
+
+    def test_missing_tool_can_be_rebound_without_overwriting_custom_readers(self):
+        value = answers(host='codex', skills='custom', skill_names=['git-read-inspection'])
+        with patch.object(install.shutil, 'which', return_value=None):
+            first = install.plan(value, self.home)
+            install.apply(first, first['plan_id'])
+        reader = self.home / '.codex/skills/git-read-inspection/scripts/git-read'
+        original = reader.read_bytes()
+        bin_dir = self.home / 'bin'; bin_dir.mkdir()
+        tool = bin_dir / 'git'; tool.write_text('#!/bin/sh\necho "git version 2.39.5"\n'); tool.chmod(0o700)
+        with patch.object(install.shutil, 'which', return_value=str(tool)):
+            second = install.plan(value, self.home)
+            applied = install.apply(second, second['plan_id'])
+            self.assertIn('EXPECTED_VERSION = "git version 2.39.5"', reader.read_text())
+            backup = next(p['backup'] for p in applied['written'] if p['path'] == str(reader))
+            self.assertEqual(Path(backup).read_bytes(), original)
+            reader.write_text(reader.read_text() + '\n# user customization\n')
+            customized = reader.read_bytes()
+            third = install.plan(value, self.home)
+            install.apply(third, third['plan_id'])
+            self.assertEqual(reader.read_bytes(), customized)
+            self.assertTrue(any('custom reader preserved' in p.get('state', '') for p in third['registrations']))
+
     def test_question_sequence_branching_edit_cancel_and_invalid_answers(self):
         value = {}
         for key in ('host', 'surface', 'scope', 'skills', 'plugins', 'git_mode', 'settings'):

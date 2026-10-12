@@ -1,6 +1,6 @@
 ---
 name: refine
-description: Corrects a stored skill against evidence in front of you - a step that failed, an assumption that no longer holds, a better route found, a description that fired at the wrong time, or a duplicate whose content has to be folded into the skill that supersedes it. Use when following a skill produced an error, when a documented command no longer exists, when the right skill did not fire for an obviously matching task, or when a review puts two overlapping skills side by side. Correct on evidence, never on a hunch.
+description: Use when evidence or review shows a stored skill failed, drifted, fired wrongly, or overlaps another skill. Correct the smallest proven defect, including a description overlap; never refine from a hunch.
 ---
 
 ## When this fires
@@ -19,6 +19,9 @@ side. Never a half-remembered past failure or a guess. Fire when:
   whichever fires first wins regardless of which is right.
 - A review puts two skills side by side and one has to absorb what the other
   documents. `/growth-loop:journey` routes merges here.
+
+When deciding whether an improvement holds, follow the evaluation-record
+guidance in [runtime](../../RUNTIME.md), not a remembered model response.
 
 ## The procedure
 

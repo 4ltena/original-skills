@@ -1,6 +1,6 @@
 ---
 name: goal-checkpoint
-description: Automatically register checkpoint monitoring when a native goal is created, then reassess milestone evidence after three hours. Inspect, review, disable or resume monitoring; not goal creation or a general process audit.
+description: Reassess milestone evidence for active goals or explicit objectives after three hours. Use for monitoring, review or recovery; skip goal creation and general process audits.
 ---
 
 # Goal checkpoint
@@ -54,7 +54,7 @@ Confirm command success and active state, due time in the user's timezone and pe
 2. Read status and confirm workspace, generation and pending ID. Ignore stale notification identities. For an explicitly requested manual review with active monitoring and no pending record, call `review` once. Do not resume disabled monitoring implicitly.
 3. Compare current criterion evidence and concrete blockers with the baseline. Mark `progress` when unmet criteria or blockers decrease, including necessary safety/recovery fixes; otherwise mark `stalled`. Do not restart specification or broaden into a general audit.
 4. Select the smallest authorized implementation/check addressing an unmet criterion. On repeated stalling for the same criterion, choose a justified alternative or identify the missing user decision. Preserve required validation and safety.
-5. Send `ack` with the fresh baseline JSON plus the confirmed `generation`, `checkpoint_id` and `verdict` (`progress` or `stalled`). Goal reference must stay the same. Confirm success and pending clearance; acknowledgement proves review, not completed implementation.
+5. Send `ack` with the fresh baseline JSON plus the confirmed `generation`, `checkpoint_id` and `verdict` (`progress` or `stalled`). Include short `reason`, `next_action` and `previous_action_result` when known; old acknowledgements without them are recorded as `unknown`. Goal reference must stay the same. Confirm success and pending clearance; acknowledgement proves review, not completed implementation.
 
 Report latest goal/milestone, changed evidence, verdict/reason, next concrete work and acknowledgement/disable briefly. Update the existing CURRENT only when useful; create no duplicate ledger.
 
@@ -63,3 +63,5 @@ Report latest goal/milestone, changed evidence, verdict/reason, next concrete wo
 `status` distinguishes inactive, pending, unregistered, corrupt and unavailable states. `disable` accepts `{"reason":"confirmed reason"}` and leaves the native goal unchanged. Interrupt suppresses that turn's continuation, preserving monitoring/pending for the next user instruction.
 
 Recover corrupt JSON only through explicit enable after confirming the latest goal and baseline. Never overwrite unsafe files, another owner, reparse points or stale acknowledgements. A backward clock resets the deadline; pending review is not completion. Missing plugin data, Python or trust means incomplete setup, not active monitoring.
+
+The adapter may retain a bounded content-free hook receipt for diagnostics: event name, time, elapsed milliseconds and `ok`/`error` only. It does not retain prompts, tool data, cwd, session IDs or transcripts. A local receipt from simulated invocation does not prove host trust or live event delivery.

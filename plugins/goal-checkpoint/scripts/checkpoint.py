@@ -20,6 +20,9 @@ if os.name != "nt":
 INTERVAL = 10800
 MAX_STATE = 16384
 MAX_TEXT = 2048
+MAX_REVIEWS = 5
+REVIEW_TEXT = 256
+REVIEW_MILESTONE = 128
 EVENTS = {"SessionStart", "UserPromptSubmit", "PostToolUse", "Stop", "Interrupt", "SessionEnd"}
 TOKEN = re.compile(r"^[0-9a-f]{32}$")
 KEY = re.compile(r"^[0-9a-f]{64}$")
@@ -207,6 +210,74 @@ def baseline(details):
     return {key: text(details.get(key), key) for key in ("goal_ref", "milestone", "criteria", "evidence")}
 
 
+def utf8_summary(value, limit):
+    """Keep a valid UTF-8 prefix without admitting a large review into state."""
+    raw = value.encode()[:limit]
+    while raw:
+        try:
+            return raw.decode()
+        except UnicodeDecodeError:
+            raw = raw[:-1]
+    return ""
+
+
+def review_text(details, field):
+    value = details.get(field)
+    if value is None:
+        return "unknown"
+    return utf8_summary(text(value, field), REVIEW_TEXT)
+
+
+def review_baseline(values):
+    return {
+        "milestone": utf8_summary(values["milestone"], REVIEW_MILESTONE),
+        "criteria": utf8_summary(values["criteria"], REVIEW_TEXT),
+        "evidence": utf8_summary(values["evidence"], REVIEW_TEXT),
+    }
+
+
+def validate_review(review):
+    if not isinstance(review, dict) or not TOKEN.fullmatch(str(review.get("checkpoint_id", ""))):
+        raise StateError("reviewのcheckpoint IDが不正です")
+    timestamp(review.get("at"))
+    if review.get("verdict") not in {"progress", "stalled"}:
+        raise StateError("reviewのverdictが不正です")
+    for field in ("reason", "next_action", "previous_action_result"):
+        value = review.get(field)
+        if not isinstance(value, str) or len(value.encode()) > REVIEW_TEXT:
+            raise StateError("reviewの要約が不正です")
+    for name in ("before", "after"):
+        summary = review.get(name)
+        if not isinstance(summary, dict):
+            raise StateError("reviewのbaseline要約が不正です")
+        for field, limit in (("milestone", REVIEW_MILESTONE), ("criteria", REVIEW_TEXT), ("evidence", REVIEW_TEXT)):
+            value = summary.get(field)
+            if not isinstance(value, str) or len(value.encode()) > limit:
+                raise StateError("reviewのbaseline要約が不正です")
+
+
+def review_size(state):
+    return len(json.dumps(state, ensure_ascii=False, allow_nan=False).encode())
+
+
+def fit_reviews(state):
+    """Prefer the current baseline over history when a legacy state is near 16KiB."""
+    reviews = state["reviews"]
+    while len(reviews) > MAX_REVIEWS or review_size(state) > MAX_STATE:
+        if len(reviews) > 1:
+            reviews.pop(0)
+            continue
+        if not reviews:
+            return
+        review = reviews[0]
+        review.update(reason="truncated", next_action="truncated", previous_action_result="truncated")
+        review["before"] = {"milestone": "", "criteria": "", "evidence": ""}
+        review["after"] = {"milestone": "", "criteria": "", "evidence": ""}
+        if review_size(state) <= MAX_STATE:
+            return
+        reviews.pop()
+
+
 def validate_state(state):
     if state.get("version") != 1 or type(state.get("active")) is not bool:
         raise StateError("状態形式が不正です")
@@ -224,6 +295,11 @@ def validate_state(state):
             text(state[field], field)
     if state.get("ack_at") is not None:
         timestamp(state["ack_at"])
+    reviews = state.get("reviews", [])
+    if not isinstance(reviews, list) or len(reviews) > MAX_REVIEWS:
+        raise StateError("reviewsが不正です")
+    for review in reviews:
+        validate_review(review)
     pending = state.get("pending")
     if pending is not None:
         if not isinstance(pending, dict) or not TOKEN.fullmatch(str(pending.get("id", ""))):
@@ -325,9 +401,17 @@ def operate(store, operation, session, workspace, details, now):
             if details.get("verdict") not in {"progress", "stalled"}:
                 raise StateError("verdictはprogressまたはstalledです")
             same = fresh["milestone"] == state["milestone"] and fresh["criteria"] == state["criteria"]
+            state.setdefault("reviews", []).append({
+                "checkpoint_id": state["pending"]["id"], "at": now, "verdict": details["verdict"],
+                "reason": review_text(details, "reason"),
+                "next_action": review_text(details, "next_action"),
+                "previous_action_result": review_text(details, "previous_action_result"),
+                "before": review_baseline(state), "after": review_baseline(fresh),
+            })
             state["stalled_count"] = state["stalled_count"] + 1 if same and details["verdict"] == "stalled" else int(details["verdict"] == "stalled")
             state.update(fresh)
             state.update(baseline_at=now, ack_at=now, due_at=now + INTERVAL, last_clock=now, pending=None)
+            fit_reviews(state)
         else:
             raise StateError("不明な操作です")
         store.save(state)

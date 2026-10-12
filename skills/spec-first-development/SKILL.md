@@ -1,9 +1,9 @@
 ---
 name: spec-first-development
-description: Specify and obtain approval for substantial implementation or a new project; resume approved work without repeating planning.
+description: Specify substantial unapproved changes or new projects. Use before implementation when scope or consequential decisions need approval; skip routine edits and approved-plan execution.
 metadata:
   author: "4ltena"
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Specification first

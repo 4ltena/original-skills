@@ -1,10 +1,9 @@
 ---
 metadata:
   author: 4ltena
-  version: '1.2'
+  version: '1.3'
 name: plan-review-loop
-description: Explain or independently review an unapproved specification or substantial
-  plan; not change review or approved-plan execution.
+description: Review unapproved specifications or explain substantial plans. Use for requested plan explanations or review before approval; skip change review and approved execution.
 ---
 
 # Plan review

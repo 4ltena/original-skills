@@ -1,9 +1,9 @@
 ---
 metadata:
   maintainer: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: frontend-design
-description: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+description: Design a new interface or substantially reshape its visual direction. Use for aesthetic choices, typography and layout; skip routine UI fixes and performance diagnosis.
 license: Complete terms in LICENSE.txt
 ---
 

@@ -1,5 +1,6 @@
 """Agent-led installation: questions -> reviewed plan -> bounded writes. No CLI dependency."""
 import argparse
+import ast
 import difflib
 import hashlib
 import json
@@ -151,6 +152,90 @@ def files_in(root):
             yield path
 
 
+def source_identity(paths):
+    """Return a deterministic, non-secret identity for reviewed source inputs."""
+    entries = []
+    for path in sorted(set(paths)):
+        raw = path.read_bytes()
+        entries.append({"path": str(path.relative_to(REPO)), "sha256": sha(raw), "size": len(raw)})
+    return {"root": str(REPO), "sha256": sha(json.dumps(entries, sort_keys=True).encode()), "files": entries}
+
+
+def hook_summary(settings, runtime_root):
+    """Summarize hook registration without copying commands or unrelated settings."""
+    result = {"status": "declared", "current": 0, "stale": 0, "other": 0,
+              "duplicates": 0, "events": {}}
+    seen = set()
+    hooks = settings.get("hooks", {}) if isinstance(settings, dict) else {}
+    if not isinstance(hooks, dict):
+        return {"status": "malformed", "current": 0, "stale": 0, "other": 0,
+                "duplicates": 0, "events": {}}
+    for event, groups in hooks.items():
+        if not isinstance(event, str) or not isinstance(groups, list):
+            result["status"] = "malformed"; continue
+        counts = {"current": 0, "stale": 0, "other": 0}
+        for group in groups:
+            values = group.get("hooks", []) if isinstance(group, dict) else []
+            if not isinstance(values, list):
+                result["status"] = "malformed"; continue
+            for value in values:
+                if not isinstance(value, dict):
+                    result["status"] = "malformed"; continue
+                command = value.get("command")
+                args = value.get("args", [])
+                parts = [command] + args if isinstance(command, str) and isinstance(args, list) else []
+                text = "\0".join(part for part in parts if isinstance(part, str))
+                state = "current" if str(runtime_root) in text else ("stale" if "original-skills" in text else "other")
+                signature = json.dumps([event, command, args], ensure_ascii=False, sort_keys=True)
+                if signature in seen:
+                    result["duplicates"] += 1
+                seen.add(signature)
+                result[state] += 1; counts[state] += 1
+        result["events"][event] = counts
+    return result
+
+
+def prior_projection(path, host, root):
+    """Carry only validated prior receipt hashes; old installs without one stay unknown."""
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > 1024 * 1024:
+        return {}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    if value.get("version") != 1 or value.get("host") != host or value.get("root") != str(root):
+        return {}
+    result = {}
+    for item in value.get("projection", {}).get("files", []):
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            continue
+        relative = Path(item["path"])
+        if relative.is_absolute() or ".." in relative.parts or len(relative.parts) > 16:
+            continue
+        digest = item.get("sha256"); size = item.get("size")
+        if re.fullmatch(r"[0-9a-f]{64}", str(digest)) and type(size) is int and 0 <= size <= 1024 * 1024:
+            result[item["path"]] = {"path": item["path"], "sha256": digest, "size": size}
+    return result
+
+
+def reader_template(content, const):
+    """Compare shipped readers while allowing only previous interpreter/tool bindings."""
+    text = content.decode('utf-8')
+    match = re.search(r'(?m)^' + const + r' = (r?".*")$', text)
+    if not match:
+        return None
+    try:
+        path = ast.literal_eval(match[1])
+    except (ValueError, SyntaxError):
+        return None
+    text = re.sub(r'(?m)^' + const + r' = r?".*"$', const + ' = "<tool>"', text)
+    text = re.sub(r'(?m)^EXPECTED_VERSION = ".*"$', 'EXPECTED_VERSION = "<version>"', text)
+    base = '/usr/bin:/bin:/usr/sbin:/sbin'
+    for allowed in (base, base + ':' + os.path.dirname(path)):
+        text = text.replace('"PATH": "' + allowed + '"', '"PATH": "<reader-path>"')
+    return text
+
+
 def plan(answers, home, executable=None):
     missing = questions(answers, home)
     if missing:
@@ -168,6 +253,14 @@ def plan(answers, home, executable=None):
     selected, dependencies = skill_selection(answers, available)
     hosts = ["claude", "codex"] if answers["host"] == "both" else [answers["host"]]
     operations, preserved, registrations = [], [], []
+    source_paths = {ENV / "runtime.py", ENV / "doctor.py", ENV / "scripts/git_guard.py", ENV / "HOSTS.md"}
+    for name in selected:
+        source_paths.update(files_in(available[name]))
+    for plugin in answers["plugins"]:
+        source_root = REPO / "skills/growth-loop/growth-loop" if plugin == "growth-loop" else REPO / "plugins" / plugin
+        source_paths.update(source for source in files_in(source_root)
+                            if not {'hooks', 'skills', 'tests'}.intersection(source.relative_to(source_root).parts))
+    source_record = source_identity(source_paths)
 
     def add(target, raw, replace=False):
         target = safe_path(target)
@@ -186,6 +279,10 @@ def plan(answers, home, executable=None):
                 fromfile=str(target), tofile=str(target)))})
 
     for host in hosts:
+        operation_start = len(operations)
+        preserved_start = len(preserved)
+        hook_receipt = {"candidate": {"status": "not_requested"},
+                        "installed": {"status": "not_requested"}}
         root = scope / (".claude" if host == "claude" else ".codex")
         skill_root = root / "skills"
         runtime_root = root / "original-skills"
@@ -193,7 +290,26 @@ def plan(answers, home, executable=None):
             target = skill_root / name
             if target.exists():
                 safe_path(target)
-                preserved.append(str(target)); continue
+                preserved.append(str(target))
+                # Rebind only a shipped reader whose body has not been customized.
+                for source in files_in(available[name]):
+                    reader = READERS.get((name, source.name))
+                    if not reader or source.name.endswith('-windows.py') != (binding['platform'] == 'win32'):
+                        continue
+                    placed = safe_path(target / source.relative_to(available[name]))
+                    if not placed.is_file():
+                        continue
+                    original = source.read_bytes()
+                    template = reader_template(original, reader[1])
+                    if template is None or reader_template(placed.read_bytes(), reader[1]) != template:
+                        registrations.append({'host': host, 'reader': name, 'state': 'custom reader preserved; refresh explicitly'})
+                        continue
+                    content, reason = bind_reader(original, *reader, binding['platform'] == 'win32')
+                    if reason:
+                        registrations.append({'host': host, 'reader': name, 'state': reason})
+                    else:
+                        add(placed, content, replace=True)
+                continue
             for source in files_in(available[name]):
                 content = source.read_bytes()
                 if source.name == "SKILL.md":
@@ -227,14 +343,29 @@ def plan(answers, home, executable=None):
                 add(target / source.relative_to(available[name]), content)
         for source in (ENV / "runtime.py", ENV / "scripts/git_guard.py"):
             add(runtime_root / source.name, source.read_bytes())
+        # The diagnostic and its receipt are the only runtime metadata refreshed by
+        # a reviewed reinstall. Plugin helpers and user Skills remain preserved.
+        add(runtime_root / "doctor.py", (ENV / "doctor.py").read_bytes(), replace=True)
         add(runtime_root / "HOSTS.md", (ENV / "HOSTS.md").read_bytes())
         add(runtime_root / "binding.json", (json.dumps(binding, indent=2) + "\n").encode())
         data_paths = {}
         for plugin in answers["plugins"]:
             source_root = REPO / "skills/growth-loop/growth-loop" if plugin == "growth-loop" else REPO / "plugins" / plugin
             target = runtime_root / plugin
+            data = root / "original-skills-data" / plugin
             if target.exists():
                 safe_path(target); preserved.append(str(target))
+                if plugin in {'growth-loop', 'goal-checkpoint'}:
+                    local = json.loads(safe_path(target / 'binding.json').read_text(encoding='utf-8'))
+                    expected = {'data': str(data), 'runtime': host, **binding}
+                    if plugin == 'growth-loop':
+                        expected.update({'version': 1, 'root': str(skill_root)})
+                    if any(local.get(key) != value for key, value in expected.items()):
+                        raise ValueError('existing runtime binding differs; review an explicit refresh: ' + str(target))
+                    data_paths[plugin] = str(data)
+                    if plugin == 'growth-loop':
+                        local['auto_delete'] = answers['auto_delete'] == 'yes'
+                        add(target / 'binding.json', (json.dumps(local, indent=2) + '\n').encode(), replace=True)
                 registrations.append({"host": host, "plugin": plugin, "state": "existing source preserved; refresh explicitly"})
                 continue
             for source in files_in(source_root):
@@ -299,8 +430,9 @@ def plan(answers, home, executable=None):
                 add(target, rules.encode())
         if answers["settings"] != "skills-only":
             settings = settings_for(host, answers, runtime_root, binding, data_paths)
+            hook_receipt["candidate"] = hook_summary(settings, runtime_root)
             candidate = root / "original-skills-settings.candidate.json"
-            add(candidate, (json.dumps(settings, ensure_ascii=False, indent=2) + "\n").encode())
+            add(candidate, (json.dumps(settings, ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
             instructions = "CLAUDE.md" if host == "claude" else "AGENTS.md"
             current = root / instructions
             directive = "\n\nRead `" + str(runtime_root / "host-policy.md") + "` for the selected original-skills host policy.\n"
@@ -314,7 +446,9 @@ def plan(answers, home, executable=None):
                 if host == "claude":
                     target = root / "settings.json"
                     existing = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
-                    add(target, (json.dumps(merge_settings(existing, settings), ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
+                    merged = merge_settings(existing, settings)
+                    hook_receipt["installed"] = hook_summary(merged, runtime_root)
+                    add(target, (json.dumps(merged, ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
                 else:
                     # Codex loads global hooks from hooks.json; trust stays a user step. Sandbox TOML is apply_config.py's job.
                     if settings["hooks"]:
@@ -323,10 +457,35 @@ def plan(answers, home, executable=None):
                         merged = merge_settings(existing, {"hooks": settings["hooks"]})
                         if "permissions" not in existing:
                             merged.pop("permissions")
+                        hook_receipt["installed"] = hook_summary(merged, runtime_root)
                         add(target, (json.dumps(merged, ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
                     registrations.append({"host": host, "state": "hooks merged into hooks.json; review and trust them via /hooks. config.toml not changed (use codex/apply_config.py)"})
             else:
                 add(root / (instructions + ".candidate"), proposed.encode())
+        receipt_path = runtime_root / "install-receipt.json"
+        projection = prior_projection(receipt_path, host, root)
+        for item in operations[operation_start:]:
+            target = Path(item["path"])
+            try:
+                relative = target.relative_to(root)
+            except ValueError:
+                continue
+            if relative == Path("original-skills/install-receipt.json"):
+                continue
+            raw = item["content"].encode("utf-8")
+            projection[str(relative)] = {"path": str(relative), "sha256": sha(raw), "size": len(raw)}
+        receipt = {
+            "version": 1, "host": host, "root": str(root),
+            "selection": {"scope": answers["scope"], "surface": answers.get("surface"),
+                "skills": answers["skills"], "selected_skills": selected,
+                "plugins": sorted(answers["plugins"]), "settings": answers["settings"]},
+            "binding": binding, "source": source_record,
+            "projection": {"files": sorted(projection.values(), key=lambda item: item["path"]),
+                "preserved": sorted(path for path in preserved[preserved_start:] if path.startswith(str(root)))},
+            "hooks": hook_receipt,
+            "claims": {"host_version": "unknown", "trust": "unknown", "runtime": "unknown"},
+        }
+        add(receipt_path, (json.dumps(receipt, ensure_ascii=False, indent=2) + "\n").encode(), replace=True)
     result = {"version": 1, "answers": answers, "home": str(home), "scope": str(scope),
         "machine": sha(json.dumps([platform.node(), platform.system(), platform.machine(), home.stat().st_dev, home.stat().st_ino]).encode()),
         "binding": binding, "selected_skills": selected, "added_dependencies": dependencies,

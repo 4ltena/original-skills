@@ -9,5 +9,7 @@ Use the current host's available tools and permission mode. Never represent
 Codex approval_policy, auto_review, native goals or Codex tools as Claude features.
 A permission/hook denial blocks that operation; do not bypass or weaken it.
 Preserve existing instructions, Skills, frontend-design and configuration.
+Choose Skills by their task scope; inspect relevant candidates when descriptions
+overlap. Load only needed companions and references, once per session.
 Install source placement, plugin registration, hook trust and runtime delivery
 are distinct results. Respect explicit user stop instructions and task scope.

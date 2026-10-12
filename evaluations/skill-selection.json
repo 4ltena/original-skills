@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "unapproved-migration",
+      "prompt": "決済データの保存形式を変更する。移行方式と互換性はまだ決めていないので、実装前に仕様を作って検討する。",
+      "required_skills": ["spec-first-development"],
+      "allowed_skills": ["spec-first-development", "plan-review-loop"],
+      "max_skill_loads": 2,
+      "max_document_loads": 5,
+      "git_write_authorized": false
+    },
+    {
+      "id": "approved-development",
+      "prompt": "仕様と完了条件は承認済み。保存、復元、UI接続の3段階を実装し、必要な検証まで完了する。",
+      "required_skills": ["workflow"],
+      "allowed_skills": ["workflow", "project-handoff", "smallest-change"],
+      "max_skill_loads": 3,
+      "max_document_loads": 3,
+      "git_write_authorized": false
+    },
+    {
+      "id": "resume-approved-work",
+      "prompt": "CURRENTに承認済み計画と実装の残りが記載されている。計画の承認は繰り返さず、未完成の工程を再開する。",
+      "required_skills": ["workflow", "project-handoff"],
+      "allowed_skills": ["workflow", "project-handoff", "smallest-change"],
+      "max_skill_loads": 3,
+      "max_document_loads": 3,
+      "git_write_authorized": false
+    },
+    {
+      "id": "plan-explanation",
+      "prompt": "この実装計画を、実装せずに説明し、未確定の判断と受入条件を確認する。",
+      "required_skills": ["plan-review-loop"],
+      "allowed_skills": ["plan-review-loop"],
+      "max_skill_loads": 1,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    },
+    {
+      "id": "plan-independent-review",
+      "prompt": "未承認の仕様を独立してレビューし、実装可能性と検証漏れを確認する。コードは変更しない。",
+      "required_skills": ["plan-review-loop"],
+      "allowed_skills": ["plan-review-loop", "code-inspection"],
+      "max_skill_loads": 2,
+      "max_document_loads": 3,
+      "git_write_authorized": false
+    },
+    {
+      "id": "new-interface",
+      "prompt": "地域の天文台の新しいサイトを設計する。星図を主題に、配色、書体、レイアウトの方向を作る。",
+      "required_skills": ["frontend-design"],
+      "allowed_skills": ["frontend-design", "ux-spike", "apple-design-principles"],
+      "max_skill_loads": 3,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    },
+    {
+      "id": "reshape-interface",
+      "prompt": "既存の画面を、情報構造を維持しながら写真主体の大胆な視覚表現へ再設計する。美術方向から検討する。",
+      "required_skills": ["frontend-design"],
+      "allowed_skills": ["frontend-design", "ux-spike"],
+      "max_skill_loads": 2,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    },
+    {
+      "id": "routine-typo",
+      "prompt": "既存ページのボタンの誤字を『保存』に直す。表示文言の1箇所だけが対象。",
+      "required_skills": [],
+      "allowed_skills": [],
+      "max_skill_loads": 0,
+      "max_document_loads": 0,
+      "git_write_authorized": false
+    },
+    {
+      "id": "routine-ui-fix",
+      "prompt": "ボタンが無効状態のときクリックイベントが走る。既存デザインを保って、そのイベント条件だけ修正する。",
+      "required_skills": [],
+      "allowed_skills": ["smallest-change", "code-inspection"],
+      "max_skill_loads": 2,
+      "max_document_loads": 1,
+      "git_write_authorized": false
+    },
+    {
+      "id": "web-performance",
+      "prompt": "React画面の入力遅延を、取得済みのブラウザ性能トレースから診断する。見た目の再設計はしない。",
+      "required_skills": ["frontend-optimize-webapp"],
+      "allowed_skills": ["frontend-optimize-webapp", "code-inspection"],
+      "max_skill_loads": 2,
+      "max_document_loads": 7,
+      "git_write_authorized": false
+    },
+    {
+      "id": "code-review",
+      "prompt": "この関数の変更差分を読み取り専用で調査し、不要な複雑さと呼出し側への影響を指摘する。",
+      "required_skills": ["code-inspection"],
+      "allowed_skills": ["code-inspection", "git-read-inspection"],
+      "max_skill_loads": 2,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    },
+    {
+      "id": "manual-git-local-fix",
+      "prompt": "manual-git環境でローカルの保存処理を修正し、focused testsまで実施する。Git操作は依頼していない。",
+      "required_skills": [],
+      "allowed_skills": ["smallest-change", "code-inspection"],
+      "max_skill_loads": 2,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    }
+  ]
+}

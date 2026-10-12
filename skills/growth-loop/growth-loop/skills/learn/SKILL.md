@@ -1,11 +1,14 @@
 ---
 name: learn
-description: Distils a reusable skill from work that just finished, when a task took real effort to get right and the same problem will come back. Use when the user says "remember how to do this", "write that down", or "make a skill for this"; when a multi-step procedure has just succeeded after several failed attempts; or when the nudge hook reports a heavy session. Takes an optional target - a directory or URL - and otherwise distils this conversation.
+description: Use when a user asks to remember a hard-won recurring procedure, after a multi-step success or a heavy-session nudge. Distils it only with evidence, overlap review, and the three-condition gate; otherwise writes nothing. Takes an optional directory or URL.
 argument-hint: "[directory-or-url]"
 ---
 
 Read [runtime](../../RUNTIME.md) first. Use the verified Python and installed
 `gl-run`; never depend on shebang, PATH or an unset plugin variable.
+
+For an evidence-driven improvement decision, follow the evaluation-record
+guidance in [runtime](../../RUNTIME.md); an unrecorded model turn is not a pass.
 
 ## First: check for overlap
 

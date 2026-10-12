@@ -5,14 +5,70 @@ import os
 from pathlib import Path
 import sys
 import time
+import threading
 import uuid
 
 import checkpoint as core
 
 
-def claude_hook(data, event, now):
+OBSERVATIONS = 'hook-observations.json'
+OBSERVATION_RETRIES = 16
+OBSERVATION_THREAD_LOCK = threading.Lock()
+CLAUDE_EVENTS = {'SessionStart', 'UserPromptSubmit', 'PostToolUse', 'Stop', 'SessionEnd'}
+
+
+def record_observation(data, event, now, elapsed_ms, outcome, supported_events=core.EVENTS):
+    """Best-effort, content-free hook receipt. It must never affect hook behavior."""
     name = event.get('hook_event_name')
-    if name not in {'SessionStart', 'UserPromptSubmit', 'PostToolUse', 'Stop', 'SessionEnd'} or name == 'SessionEnd':
+    if name not in supported_events:
+        return
+    elapsed = max(0, int(elapsed_ms))
+    # Store locks deliberately fail fast. A tiny bounded retry keeps concurrent
+    # sessions from dropping ordinary receipts without delaying a hook materially.
+    with OBSERVATION_THREAD_LOCK:
+        for attempt in range(OBSERVATION_RETRIES):
+            try:
+                with core.Store(data) as store, store.lock('hook-observations'):
+                    receipt = store.read(OBSERVATIONS)
+                    if receipt is None:
+                        receipt = {'version': 1, 'observations': []}
+                    observations = receipt.get('observations') if isinstance(receipt, dict) and receipt.get('version') == 1 else None
+                    if not isinstance(observations, list):
+                        raise core.StateError('invalid observation receipt')
+                    normalized = []
+                    for item in observations:
+                        if (not isinstance(item, dict) or item.get('event') not in supported_events
+                                or item.get('outcome') not in {'ok', 'error'}):
+                            raise core.StateError('invalid observation receipt')
+                        core.timestamp(item.get('at'))
+                        if type(item.get('elapsed_ms')) is not int or item['elapsed_ms'] < 0:
+                            raise core.StateError('invalid observation receipt')
+                        normalized.append({key: item[key] for key in ('event', 'at', 'elapsed_ms', 'outcome')})
+                    normalized.append({'event': name, 'at': core.timestamp(now), 'elapsed_ms': elapsed, 'outcome': outcome})
+                    receipt = {'version': 1, 'observations': normalized[-32:]}
+                    store.write(OBSERVATIONS, receipt)
+                    return
+            except core.StateError:
+                if attempt + 1 < OBSERVATION_RETRIES:
+                    time.sleep(0.001)
+            except (OSError, OverflowError, ValueError, TypeError):
+                return
+
+
+def observed_hook(data, event, now, handler, supported_events=core.EVENTS):
+    started = time.perf_counter()
+    try:
+        output = handler(data, event, now)
+    except BaseException:
+        record_observation(data, event, now, (time.perf_counter() - started) * 1000, 'error', supported_events)
+        raise
+    record_observation(data, event, now, (time.perf_counter() - started) * 1000, 'ok', supported_events)
+    return output
+
+
+def _claude_hook(data, event, now):
+    name = event.get('hook_event_name')
+    if name not in CLAUDE_EVENTS or name == 'SessionEnd':
         return {}
     session = 'claude:' + core.text(event.get('session_id'), 'session_id')
     # Claude has no turn_id. Record a fresh adapter turn at each UserPromptSubmit,
@@ -46,6 +102,10 @@ def claude_hook(data, event, now):
                 return {key: translate(item) for key, item in value.items()}
             return value
         return translate(output)
+
+
+def claude_hook(data, event, now):
+    return observed_hook(data, event, now, _claude_hook, CLAUDE_EVENTS)
 
 
 def operate(data, host, operation, session, workspace, details, now):
@@ -83,7 +143,8 @@ def main():
             event = json.loads(raw)
             if not isinstance(event, dict):
                 raise core.StateError('hook object required')
-            output = claude_hook(str(data), event, time.time()) if args.host == 'claude' else core.run_hook(str(data), event, time.time())
+            now = time.time()
+            output = claude_hook(str(data), event, now) if args.host == 'claude' else observed_hook(str(data), event, now, core.run_hook)
             core.emit(output)
         else:
             details = core.bounded_json(sys.stdin.buffer.read(core.MAX_STATE + 1)) if args.operation in {'enable', 'resume', 'baseline', 'ack', 'disable'} else {}
