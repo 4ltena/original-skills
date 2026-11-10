@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: document-authoring
 description: Review an existing draft against its request and supplied sources for accuracy and reader usability. Use for review-only work, not external source research, binary document processing or rewriting.
 ---
@@ -22,7 +22,7 @@ For an **action-oriented document**, check whether the reader can find the first
 
 For an **explanation or argument**, check the link among question, claim, evidence, interpretation and conclusion. Ask whether comparisons use like conditions, decision criteria are visible, and material counterevidence or limits are missing.
 
-For either type, find missing requirements, duplication, heading-content mismatch and paragraphs or lists that hinder navigation. Suggest a preference-based change only when its reader impact can be explained.
+For either type, find missing requirements, duplication, heading-content mismatch and paragraphs or lists that hinder navigation. Check whether the opening makes the main point findable, prerequisites appear where used, unfamiliar terms are explained, and optional background obscures the reader's path. Recommend simpler wording or grouping only for a concrete reading burden; shortness, fixed item counts and short sentences are not goals by themselves. Preserve needed evidence, qualifications and the requested genre. Suggest a preference-based change only when its reader impact can be explained.
 
 ## Check sources and publication boundaries
 

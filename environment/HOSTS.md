@@ -38,6 +38,7 @@ and --client paths; unavailable broker actions are reported, never fabricated.
 | document-translation | portable | conversation Skill: document-translation; bundled references/scripts and available host tools |
 | document-writing | portable | conversation Skill: document-writing; bundled references/scripts and available host tools |
 | forget | adapted | verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes |
+| finite-verification | portable | conversation Skill: finite-verification; bundled references/scripts and available host tools |
 | frontend-design | portable | conversation Skill: frontend-design; bundled references/scripts and available host tools |
 | frontend-optimize-apple | portable | conversation Skill: frontend-optimize-apple; bundled references/scripts and available host tools |
 | frontend-optimize-linux | portable | conversation Skill: frontend-optimize-linux; bundled references/scripts and available host tools |

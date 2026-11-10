@@ -1,9 +1,9 @@
 ---
 metadata:
   maintainer: "4ltena"
-  version: "1.2"
+  version: "2.0"
 name: frontend-design
-description: Design a new interface or substantially reshape its visual direction. Use for aesthetic choices, typography and layout; skip routine UI fixes and performance diagnosis.
+description: Design, restyle or review a web/app interface so it has a distinct point of view and none of the cheap "AI look". Covers art direction, typography, layout, design tokens (type, spacing, concentric radius, color, motion), an AI-slop checklist, Japanese font stacks and a screenshot review loop. Skip routine UI fixes and performance diagnosis.
 license: Complete terms in LICENSE.txt
 ---
 
@@ -14,6 +14,19 @@ Approach this as the design lead at a design studio known for giving every clien
 ## Ground your designs in the subject matter
 
 If the brief does not identify what the product or subject matter is, identify it yourself before designing, and confirm with the client. You can come up with one concrete subject, the design's audience, and the design's primary job, as a proposal. If there's any information in your memory about the client's preferences or context about what they're building, use that as a hint. The subject's industry, subject matter, materials, and vernacular are where distinctive visual choices come from — a design for a toy for girls aged 8–11 will be very aesthetically different from a dashboard for financial analysts. Build with the brief's real content and subject matter throughout.
+
+## Existing system first
+
+If the project already has design tokens, a design system or a component library, work inside it: change the tokens, reuse the components, and write no new raw values. Everything below about a distinct point of view applies to the open axes the system leaves free. When the brief is to restyle, list the existing features and interactions first and keep all of them, including ones the brief does not mention.
+
+## Art direction in five points
+
+Before any code, settle who it is for, what problem it solves and how it should feel (ask the user if you cannot write these). Then fix five points and keep them in the plan:
+1. Keywords: the mood, in a few words.
+2. Visual motif: one recurring shape, texture or device drawn from the subject.
+3. Color: base palette plus one accent and exactly where it is used.
+4. Type: the families and their roles.
+5. Focal point: the one thing that screen shows most strongly.
 
 ## Design principles
 
@@ -34,7 +47,7 @@ Visual structure is information. Structural devices like outlines, borders, numb
 
 Use non-user-triggered motion sparingly and deliberately, only to draw attention. A single orchestrated moment — one page-load sequence or one reveal — lands better than scattered effects; fade-and-slide-up entrances on each section and hover transitions on every card are the generic default and read as AI-generated. Motion that answers a person's action (opening, expanding, confirming) is welcome when it shows what changed.
 
-Consider written content carefully. Often a design brief may not contain real content, and it's up to you to come up with copy and placeholder content. Copy can make a design feel as templated as the design itself. See the below section on writing for more guidance.
+Use the brief's real content and existing product copy first. Missing copy is not a reason to fill the layout with explanatory paragraphs or invented claims. Supply only the short labels and representative content needed to make the requested flow understandable; keep unresolved product claims in the handoff. See the writing guidance below.
 
 ## Process: plan, review against the brief, build, critique
 
@@ -53,17 +66,39 @@ Work in two passes. First, brainstorm a short design plan based on the client's 
 - Layout: a layout concept, using one-sentence prose descriptions and ASCII wireframes to ideate and compare. Include alignment guidance; should the content be left aligned, center aligned, justified?
 - Principles: the high-level guidance for what makes this page unique.
 
+Keep this plan, design rationale, implementation notes, and critique in the conversation or working notes. They are not page content. Do not turn them into headings, cards, badges, or helper paragraphs in the interface.
+
 Then review that plan against the brief before building: if any part of it reads like the generic default you would produce for any similar page (work through a similar prompt to see if you arrive somewhere similar) rather than a choice made for this specific brief — revise that part, say what you changed and why. Only after you've confirmed the relative uniqueness of your design plan should you start to write the code, following the revised plan.
 
 When writing the code, be careful of structuring your CSS selector specificities. It's easy to generate CSS classes that cancel each other out (especially with a type-based selector like .section and an element-based selector like .cta). This can happen often with padding/margin between sections.
 
+## Quality floor: tokens and slop
+
+Distinctiveness lives in the choices; craft lives in the details. Both are required. Read `references/tokens.md` before writing CSS and apply it unless the brief or the project's system says otherwise. In short:
+- 3-4 type sizes, none below 12px; hierarchy from weight, color and space.
+- Spacing and radius on a 4px grid; 2-3 radius steps, nested radii concentric (inner = outer - padding).
+- One hairline border weight; shadows only on floating layers; neutral UI with one accent whose use is defined.
+- One primary button per screen; motion ease-out about 250ms, transform-based, `prefers-reduced-motion` honored.
+
+`references/slop-checklist.md` lists the tells of a generated interface (purple gradients, card-in-card, left-stripe cards, eyebrows, colorful icon tiles, non-concentric radii and more). Check the render against it and fix what you find. The calibration list in the next section is the style-level version of the same idea.
+
+For Japanese or other CJK pages use the stacks in `references/fonts.md` (Latin first, then CJK, then generic). For specific components (raised button, cascading menu, reorder, icons, dark mode) and recommended parts, load `references/techniques.md` only when the work includes them. Prefer ready-made accessible components over hand-built ones, and never reuse another brand's imagery.
+
 ## Restraint and self-critique
 
-Spend your boldness in one place. Let one element be the memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected, visually accessible, harmonious color palettes. Critique your own work as you build, taking screenshots to review if your environment supports it — a picture is worth 1000 tokens. Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creatives have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
+Spend your boldness in one place. Let one element be the memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected, visually accessible, harmonious color palettes. Critique your own work as you build, taking screenshots to review if your environment supports it — a picture is worth 1000 tokens. Follow `references/review-loop.md`: screenshots at several widths, score against the token and slop files, fix the worst problem first, one place per pass, two to four passes, then report the changes as "element: old -> new". Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creatives have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
 
 ## More on writing in design
 
 Words appear in a design for one reason: to make it easier to understand and use. They are design content, not decoration. Bring the same intentionality and minimalism to copywriting that you would bring to spacing and color. Before writing anything, ask what the design needs to say, and how it can best be said to help the person navigate the experience.
+
+Before adding a sentence, identify the user's task, decision, or uncertainty it resolves. Reuse supplied copy; add text only for a missing purpose such as identifying an action, explaining a non-obvious input, reporting a real state, or helping recovery. If removing it leaves the task and meaning intact, omit it. Do not give every heading a subtitle or every control a helper paragraph by default.
+
+Keep design commentary and implementation explanations out of product UI: for example, "A clean, intuitive experience," "Built with React," "This section showcases...", or "Optimized for smooth interaction" do not explain the user's next action. Do not invent taglines, feature descriptions, sample metrics, or status claims to make a screen look complete. If product copy is essential but unknown, flag that gap in the handoff and use minimal neutral sample content where necessary for the prototype.
+
+Preserve requested editorial or educational content, necessary onboarding, errors, permission and privacy explanations, and accessible names or descriptions. Brevity is not a reason to hide help the user needs. Choose placement by relevance: a field hint at the field, a state message at the affected action, and optional detail in existing disclosure patterns when appropriate. Do not move filler into tooltips or screen-reader text to satisfy this rule.
+
+During critique, inspect the actual rendered text as well as newly added string literals, including empty, loading, error, and narrow-screen states that the change touches. Remove repeated labels, narration of obvious controls, placeholder explanations, and agent-facing notes. Report design choices, test results, and remaining gaps in the conversation; render them inside the product only when the requested product itself needs them.
 
 Write from the end user's perspective. Name things by what users will understand in simple language, not by how the system is built. A user manages notifications, not webhook config. Describe what something is or does in plain terms rather than selling it. Being specific and legible to new users is always better than being clever.
 

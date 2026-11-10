@@ -1,7 +1,7 @@
 ---
 metadata:
   author: 4ltena
-  version: '1.3'
+  version: '1.4'
 name: plan-review-loop
 description: Review unapproved specifications or explain substantial plans. Use for requested plan explanations or review before approval; skip change review and approved execution.
 ---
@@ -16,6 +16,6 @@ Use available Codex delegation. Disclose when the reviewer uses the same model; 
 
 Give each finding an ID such as R1-01, source, impact, recommendation and rationale. Wait for the user's disposition unless decision authority was explicitly delegated within scope. Do not insert this process again into ordinary execution of an approved plan.
 
-Integrate accepted findings and record rejected findings with reasons. Do not resubmit a rejected point without new evidence. Stop when a round has no accepted findings or after three rounds; unresolved substantive issues return to the specification. Subsequent change review and final verification remain required.
+Integrate accepted findings and record rejected findings with reasons. Do not resubmit a rejected point without new evidence. Stop when a round has no accepted findings or after two rounds; unresolved substantive issues return to the specification. Subsequent change review and final verification remain required.
 
 Source: adapted for Codex from `~/.claude/skills/plan-review-loop/SKILL.md`.

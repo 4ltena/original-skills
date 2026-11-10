@@ -108,6 +108,42 @@
       "max_skill_loads": 2,
       "max_document_loads": 2,
       "git_write_authorized": false
+    },
+    {
+      "id": "tests-after-green",
+      "prompt": "実装とテストは全部緑になった。念のため、既存のテスト自体が正しいかを確かめるテストも追加しておいて。",
+      "required_skills": ["finite-verification"],
+      "allowed_skills": ["finite-verification", "mutation-check"],
+      "max_skill_loads": 2,
+      "max_document_loads": 1,
+      "git_write_authorized": false
+    },
+    {
+      "id": "universal-property-proof",
+      "prompt": "金額の端数処理関数を書いた。どんな入力でも合計が保存されることを、テストの網羅不足を心配せずに済む形で示したい。Leanでの証明も検討して。",
+      "required_skills": ["finite-verification"],
+      "allowed_skills": ["finite-verification", "mutation-check", "smallest-change"],
+      "max_skill_loads": 3,
+      "max_document_loads": 2,
+      "git_write_authorized": false
+    },
+    {
+      "id": "routine-test-addition",
+      "prompt": "日付の書式化関数にタイムゾーン引数を追加し、対応するテストを1本書いて通して。",
+      "required_skills": ["finite-verification"],
+      "allowed_skills": ["finite-verification", "mutation-check", "smallest-change"],
+      "max_skill_loads": 3,
+      "max_document_loads": 1,
+      "git_write_authorized": false
+    },
+    {
+      "id": "remove-test-of-tests",
+      "prompt": "このリポジトリには、テストの期待値を別実装で計算し直して照合するテストが溜まっている。テストのテストを0にしたい。",
+      "required_skills": ["finite-verification"],
+      "allowed_skills": ["finite-verification", "mutation-check"],
+      "max_skill_loads": 2,
+      "max_document_loads": 2,
+      "git_write_authorized": false
     }
   ]
 }

@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.2"
+  version: "1.3"
 name: document-style-ja
 description: Polish persistent Japanese prose after document-writing or Japanese-target document-translation, or for a focused style edit. Not for substantive rewriting, fiction, ordinary chat or status, handoff and progress notes.
 ---
@@ -34,6 +34,8 @@ For Japanese technical documents, make actors and actions clear when they could 
 For explanatory prose, check that each paragraph develops a recognizable topic and that its opening connects to what the reader already knows. Introduce what an unfamiliar concept is before details that depend on knowing it. Keep definitions, classifications and referents consistent across sections. When text, tables, figures or code use different examples, make each reference and the property it demonstrates clear; do not transfer a result between examples without support.
 
 Read headings and paragraph openings in sequence to find missing connections, repeated conclusions or information delayed without a purpose. Choose headings that identify the subject, question or useful result for the medium; do not force every heading into a conclusion. Remove a repeated explanation only when it adds no condition, distinction or useful reminder. Preserve necessary terms and details, and retain lists for genuinely parallel items or steps. Do not equalize section lengths, impose list ratios, add a new outline or restructure an argument during a style-only pass; flag changes that need substantive rewriting.
+
+Reduce reading effort within this style-only scope. Prefer familiar wording where precision and voice survive; make the main clause and its conditions easy to follow. Remove expendable framing that delays the point. Avoid fixed sentence or list limits and repeated fragmentation that makes relationships harder to read. Flag a buried conclusion or excessive background when repairing it would require structural rewriting.
 
 In practical prose, reconsider unexplained metaphors, attributed intention or feeling in abstract objects, and slogan-like fragments whose actual action is unclear. Keep objective tool behavior, established idioms and deliberate imagery that suits the writer. A plain alternative must retain the original implication and breadth: an unspecified failure cannot become a particular integrity error, and an unnoticed event cannot become a guarantee that no notification was sent. Keep meaningful emphasis, contrast and uncertainty when removing empty introductory formulas. Do not treat an adjective followed by です, an inanimate subject, repeated endings or a symbol as an error by itself.
 

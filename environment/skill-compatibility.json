@@ -19,6 +19,12 @@
       "entrypoint": "conversation Skill: apple-design-principles; bundled references/scripts and available host tools",
       "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
     },
+    "homework-glowup": {
+      "classification": "portable",
+      "source": "skills/homework-glowup",
+      "entrypoint": "conversation Skill: homework-glowup; checklist template and available format-specific skills/tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
+    },
     "code-inspection": {
       "classification": "portable",
       "source": "skills/code-inspection",
@@ -78,6 +84,12 @@
       "source": "skills/growth-loop/growth-loop/skills/forget",
       "entrypoint": "verified Python + growth-loop/bin/gl-run; local binding, ownership helper for managed writes",
       "fixture": "environment/tests/test_portability.py"
+    },
+    "finite-verification": {
+      "classification": "portable",
+      "source": "skills/finite-verification",
+      "entrypoint": "conversation Skill: finite-verification; bundled references/scripts and available host tools",
+      "fixture": "environment/tests/test_install.py: all-skills placement/metadata/reference resolution"
     },
     "frontend-design": {
       "classification": "portable",

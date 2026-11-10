@@ -3,7 +3,7 @@ name: workflow
 description: Implement approved multi-stage changes or resume incomplete milestones. Use for execution with bounded review and verification; skip single routine fixes and planning-only requests.
 metadata:
   author: 4ltena
-  version: '2.1'
+  version: '2.2'
 ---
 
 # Development workflow
@@ -35,6 +35,8 @@ Triage every new finding: **blocking** (a bar check fails, a stated requirement 
 ## Waiting on the user or environment
 
 When progress needs a user action, a permission or an unavailable environment, ask once with the exact action, record the blocker, then continue unblocked work or stop. Do not re-probe the same condition each turn without a new signal from the user or a changed condition.
+
+Batch manual checks that need the user into one request per milestone, after automated checks pass; do not ask for a manual recheck after each fix. Wait for a long build or test with one blocking wait or completion notification, not repeated sleep or log polling.
 
 ## Autonomous continuation
 

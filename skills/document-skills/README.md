@@ -14,6 +14,10 @@ Agent Skills for drafting, revising, reviewing and translating reader-facing doc
 
 Use the Japanese companion after drafting or translating a persistent document into Japanese, not for an English target, a short conversation or an unchanged quotation. Its lexical cues are context checks, not forbidden words or automatic substitutions. Substantive changes belong in `document-rewriting`; review-only requests belong in `document-authoring`. Literary polishing is outside this collection.
 
+## Reading effort
+
+Drafting, revision, review and Japanese polishing help readers find the main point, follow focused passages and act without carrying distant prerequisites in memory. Preserve evidence, qualifications and the requested genre. Simplicity does not require fixed sentence or list limits. See [source and adaptation notes](THIRD_PARTY_NOTICES.md#reading-effort).
+
 Place each `skills/<name>/` directory in a client that supports Agent Skills. Replacing the currently installed Codex Skills is a separate task after other work stops.
 
 ## Origins and rights

@@ -13,6 +13,8 @@ Read the [supplied summary](references/apple-design-principles.md) first. It is 
 
 Identify the platform, audience, primary task and design decision, then select relevant principles. Connect existing requirements and design systems to concrete behavior: reachability, recovery, denied permissions, consistency, text scaling, input methods and state communication. Do not enumerate all eight principles every time.
 
+Apply clarity through the interaction and hierarchy, without adding paragraphs that announce design principles, implementation choices, or the interface's quality. Reuse existing copy. Add text only when it resolves a specific task, decision, or uncertainty; omit subtitles and control explanations that repeat what is already evident. Preserve necessary onboarding, permission/privacy explanations, errors, and accessible names or descriptions. Check the rendered screen for redundant copy, and keep design rationale and review findings in the conversation unless they are requested product content.
+
 Ground reviews in screens, code or prototypes. State the interaction, impact, principle, smallest improvement and check. Do not call unobserved behavior a defect; say when no supported issue remains.
 
 The questions in section 3 are the summary author's examples, not Apple's mandatory tests or certification. Do not derive fixed dimensions or decoration from a principle. Verify OS, component, dimension, API and current compliance details in the applicable official Apple documentation and distinguish unverified claims.

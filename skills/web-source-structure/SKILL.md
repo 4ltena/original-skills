@@ -17,6 +17,8 @@ Inline code is appropriate when explicitly required for standalone/offline deliv
 
 When extracting existing code, preserve stylesheet order/cascade, script execution order, DOM readiness, module/global scope and event behavior. Rebase CSS `url()` paths, imports and asset references relative to their new locations; preserve deployment base paths and CSP compatibility. Avoid replacing required inline bootstrap/configuration blindly.
 
+Preserve product copy during structural work. Keep file-layout explanations, implementation notes, and verification results in the conversation or developer documentation, rather than inserting banners, subtitles, helper paragraphs, or hidden accessibility text into the page. New UI copy needs a concrete user task, decision, or uncertainty to resolve; do not add it to explain the refactor. Preserve functional hints, errors, and accessible names or descriptions, and check the rendered entrypoint for accidental text changes alongside behavior and styling.
+
 Verify the actual entrypoint through the intended server/build environment: assets load with correct paths/MIME types, no console/import errors, and affected styling/interactions still work. Browser ES modules need appropriate HTTP serving; a successful `file://` preview is not equivalent. Run existing relevant checks and inspect the built output when it is the deliverable.
 
 References: [MDN CSS](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Getting_started), [MDN JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), [web.dev resource loading](https://web.dev/learn/performance/optimize-resource-loading).

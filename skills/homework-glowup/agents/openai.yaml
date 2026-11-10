@@ -1,0 +1,4 @@
+interface:
+  display_name: "Homework Glowup"
+  short_description: "Review assignments and record checklist evidence"
+  default_prompt: "Use $homework-glowup to review assignment requirements and saved filename rules, check content, formatting, author and image metadata, perform requested image metadata removal on verified copies, check timestamps, and record results, evidence and unverified items in the checklist."

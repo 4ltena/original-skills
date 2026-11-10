@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.1"
+  version: "1.2"
 name: document-rewriting
 description: Rewrite or explicitly summarize an existing reader-facing document while preserving requested claims and evidence. Use for substantive revision, not new drafting, style-only Japanese polishing or review-only work.
 ---
@@ -19,6 +19,8 @@ Change the structure, explanation, length or tone of an existing draft as reques
 ## Rebuild for the reader
 
 Arrange the needed conclusion or action and its evidence in a usable order. Remove repetition and empty prefaces without dropping conditions or exceptions. Change an abstract evaluation or formulaic expression only when the concrete original claim can still be read. Do not remove a three-part list, punctuation or emphasis merely because it appears often.
+
+Reduce what the reader must remember across passages: bring the main point forward when the purpose permits, keep prerequisites beside the action, and separate optional background from the main explanation. Prefer familiar wording and focused paragraphs or steps. Group long lists where it helps navigation; fixed length or item limits must not remove required evidence or qualifications. Honor the requested genre and deliberate buildup.
 
 For a **summary**, compress to the requested purpose and length. Not every source claim must remain, but preserve explicitly required conclusions, numbers, caveats and important conditions. If omission could make the reader decide differently, state the summary's limit or restore the information.
 

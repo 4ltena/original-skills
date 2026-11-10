@@ -44,6 +44,8 @@ Use trace intervals, tracks, symbols, and wait targets to classify the cause: CP
 
 ### 4. Make the smallest change
 
+Preserve existing product copy during performance work. Keep profiling rationale, metrics, architecture notes, and verification results in traces, reports, or the conversation; do not add explanatory UI paragraphs, performance badges, or developer diagnostics unless the requested product needs them. Any necessary new text must resolve a specific user action, state, or uncertainty. Preserve functional hints, errors, and accessible names or descriptions; do not remove them to claim a speedup. Inspect touched screens and states for accidental or redundant copy additions when checking equivalent output.
+
 Explore removing unnecessary work, reducing data or update scope, then diffing/batching/caching/virtualization, then bounded offloading. Account for copy, queue, reply, and UI application when offloading. Do not assume `Task {}` automatically leaves MainActor. Verify where `nonisolated async` runs for the target Swift version and settings. Do not infer the cost of redrawing the whole screen from view body counts alone.
 
 Define cache limits and invalidation, queue backpressure, ownership, cancellation, stale results, errors, and shutdown. Do not undertake a large rewrite, remove features, weaken security, or change global settings without authorization.

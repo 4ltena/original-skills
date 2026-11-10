@@ -1,0 +1,23 @@
+{"schema_version":1,"notation":"crows_foot","line_semantics":"identifying",
+ "entities":[
+  {"id":"E001","name":"顧客","attributes":[
+    {"id":"A001","name":"顧客ID","type":"int","keys":["PK"],"note":null},
+    {"id":"A002","name":"氏名","type":"varchar(255)","keys":[],"note":"必須"},
+    {"id":"A003","name":"メール","type":null,"keys":["UK"],"note":null}]},
+  {"id":"E002","name":"注文","attributes":[
+    {"id":"A004","name":"注文ID","type":"int","keys":["PK"],"note":null},
+    {"id":"A005","name":"顧客ID","type":"int","keys":["FK"],"note":null},
+    {"id":"A006","name":"金額","type":"decimal(10,2)","keys":[],"note":null}]},
+  {"id":"E003","name":"注文明細","attributes":[
+    {"id":"A007","name":"注文ID","type":"int","keys":["PK","FK"],"note":null},
+    {"id":"A008","name":"行番号","type":"int","keys":["PK"],"note":null},
+    {"id":"A009","name":"商品ID","type":"int","keys":["FK"],"note":null}]},
+  {"id":"E004","name":"商品","attributes":[
+    {"id":"A010","name":"商品ID","type":"int","keys":["PK"],"note":null},
+    {"id":"A011","name":"親商品ID","type":"int","keys":["FK"],"note":null}]}],
+ "relationships":[
+  {"id":"R001","src":"E001","dst":"E002","src_multiplicity":"exactly_one","dst_multiplicity":"zero_or_more","line_style":"dashed","identifying":false,"label":"発注する"},
+  {"id":"R002","src":"E002","dst":"E003","src_multiplicity":"exactly_one","dst_multiplicity":"one_or_more","line_style":"solid","identifying":true,"label":"含む"},
+  {"id":"R003","src":"E004","dst":"E003","src_multiplicity":"exactly_one","dst_multiplicity":"zero_or_more","line_style":"dashed","identifying":false,"label":null},
+  {"id":"R004","src":"E004","dst":"E004","src_multiplicity":"zero_or_one","dst_multiplicity":"zero_or_more","line_style":"dashed","identifying":false,"label":"親子"}],
+ "unresolved":[]}

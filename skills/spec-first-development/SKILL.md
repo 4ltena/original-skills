@@ -8,11 +8,15 @@ metadata:
 
 # Specification first
 
-For local reversible changes without material security, migration, API, dependency, deployment or cross-component impact, keep the behavior, paths and focused checks in context; the implementation request authorizes this fast path. Otherwise define a specification before implementation.
+For local reversible changes without material security, migration, API, dependency, deployment or cross-component impact, keep the behavior, paths and focused checks in context; the implementation request authorizes this fast path. Otherwise define a specification before implementation. A project's domain (security, sandbox, migration) alone does not make a change non-routine; judge the change itself.
 
 Record purpose, exclusions, constraints, acceptance criteria and unresolved consequential decisions in the project's existing specification layout, defaulting to `.project-notes/specs/YYYY-MM-DD-<slug>.md`. Include ordered milestones, dependencies, owned paths, recovery and verification gates.
 
 Use an available independent read-only reviewer for a substantive specification; report when independent review is unavailable. Use plan-review-loop for a substantial plan explanation/review when needed, and ux-spike only for unsettled UI direction. Resolve supported blocking findings and obtain specification approval before implementation. Existing decisions remain approved unless scope, assumptions or acceptance materially change.
+
+Independent specification review runs at most two rounds. Findings still open after round two go to the project's deferred list; ask the user only when one shows data loss or a security hole.
+
+Fixes inside an approved specification's scope need no new specification. Test-environment, fixture, build and compile failures are routine fixes, never errata, even inside a gated milestone.
 
 Execute the approved milestones through available workflow guidance. Independent bundles require non-overlapping ownership, satisfied dependencies and bounded requirements/checks; otherwise work sequentially. The root integrates and verifies each dependent gate. Require available independent change review at final or high-risk gates, resolve confirmed blockers and report unmet gates honestly.
 

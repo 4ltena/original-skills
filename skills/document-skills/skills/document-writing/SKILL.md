@@ -1,7 +1,7 @@
 ---
 metadata:
   author: "4ltena"
-  version: "1.2"
+  version: "1.3"
 name: document-writing
 description: Draft a new reader-facing document from requirements and sources, including README and docs. Use for new writing, not an existing-text rewrite, review-only request or status, handoff and progress notes.
 ---
@@ -25,6 +25,12 @@ For **explanation or argument**, connect the question, evidence, interpretation 
 
 Use headings that name their content and give each paragraph a clear point. Use a table when it improves comparison. In a continuing exchange, briefly restore the relevant state instead of assuming the reader remembers an earlier turn. Brevity must not remove a condition, exception or reason needed for a decision.
 
+## Reduce reading effort
+
+- Let the opening expose the main answer, request or action when the document's purpose permits. Put essential context beside it and optional background later; preserve a requested narrative or argumentative buildup.
+- Use familiar words, concrete actors and actions. Explain an unfamiliar term where it is first needed. Keep each paragraph focused and each procedural step a bounded action, with prerequisites visible where used.
+- Remove empty openings, repeated conclusions and side issues that do not serve the reader's purpose. Group long lists by meaning when useful; do not impose fixed item or sentence limits, hide required material or replace an explanation with a slogan.
+
 ## Finish against the sources
 
-Compare the draft with the request and its sources. Check required content, claim support, numbers, quotations, references and private information. Do not call a command or link verified unless actually checked. If generating a PDF or other rendered artifact, inspect the available final artifact and report the scope of that inspection.
+Compare the draft with the request and its sources. Check required content, claim support, numbers, quotations, references and private information. Read the opening and headings on their own to check that the reader can locate the main point or action. Do not call a command or link verified unless actually checked. If generating a PDF or other rendered artifact, inspect the available final artifact and report the scope of that inspection.

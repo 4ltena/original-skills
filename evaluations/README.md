@@ -2,7 +2,7 @@
 
 Use these cases to check whether an agent selects the intended skill, avoids
 nearby false triggers, and stays within the task's reading and Git scope.
-`skill-selection.json` supplies the same 12 requests for Codex and Claude.
+`skill-selection.json` supplies the same 16 requests for Codex and Claude.
 The limits are case-specific acceptance conditions, not global reading limits.
 
 Run each request in a clean native host session or an effectively verified
